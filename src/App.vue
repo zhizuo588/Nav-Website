@@ -207,19 +207,19 @@
             </button>
           </div>
 
-          <div class="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
+          <div class="grid grid-cols-3 sm:grid-cols-4 gap-1">
             <a
               v-for="(link, index) in friendLinks"
               :key="index"
               :href="link.url"
               target="_blank"
-              class="group relative flex flex-col items-center py-1.5 px-0.5 rounded-xl bg-gray-700/30 hover:bg-purple-600/20 border border-white/5 hover:border-purple-400/40 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20 hover:-translate-y-1 overflow-hidden"
+              class="group relative flex flex-col items-center py-1 px-0.5 rounded-xl bg-gray-700/30 hover:bg-purple-600/20 border border-white/5 hover:border-purple-400/40 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20 hover:-translate-y-1 overflow-hidden"
             >
               <!-- 悬停背景光效 -->
               <div class="absolute inset-0 bg-gradient-to-br from-purple-600/0 to-pink-600/0 group-hover:from-purple-600/10 group-hover:to-pink-600/10 transition-all duration-500"></div>
 
               <!-- 图标容器 -->
-              <div class="relative mb-1.5">
+              <div class="relative mb-1">
                 <div class="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <div class="relative flex h-10 w-10 items-center justify-center transition-transform duration-300 group-hover:scale-110">
                   <img
