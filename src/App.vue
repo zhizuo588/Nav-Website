@@ -82,8 +82,8 @@
       <!-- 3. 内容网格 -->
       <div v-if="filteredItems.length > 0" class="w-full max-w-[72rem] grid grid-cols-4 md:grid-cols-6 xl:grid-cols-8 gap-2 px-4 pb-10 mx-auto">
         <NavCard
-          v-for="(item, index) in filteredItems"
-          :key="item.url || index"
+          v-for="item in filteredItems"
+          :key="item.id || item.url"
           :item="item"
           :on-click="recordClick"
         />
@@ -160,12 +160,21 @@ const showFriendModal = ref(false) // 控制友链弹窗
 const currentEngine = ref(searchEngines[0])
 
 // === 点击统计 ===
+const DATA_VERSION = '1.0' // 数据版本号
 const clickCounts = ref({})
 
 // 从 localStorage 加载点击统计
 onMounted(() => {
+  const savedVersion = localStorage.getItem('navDataVersion')
   const saved = localStorage.getItem('navClickCounts')
-  if (saved) {
+
+  // 如果版本不匹配，清理旧数据
+  if (savedVersion !== DATA_VERSION) {
+    console.log('数据版本已更新，清理旧缓存数据')
+    localStorage.removeItem('navClickCounts')
+    localStorage.setItem('navDataVersion', DATA_VERSION)
+    clickCounts.value = {}
+  } else if (saved) {
     try {
       clickCounts.value = JSON.parse(saved)
     } catch (e) {

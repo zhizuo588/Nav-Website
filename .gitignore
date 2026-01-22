@@ -42,3 +42,6 @@ captures/
 # Other cache files
 .cache/
 .pub-cache/
+
+# Windows Zone.Identifier files
+*:Zone.Identifier
