@@ -11,7 +11,8 @@
     "@vue/language-server": "^3.2.2",
     "lucide-vue-next": "^0.344.0",
     "puppeteer": "^24.35.0",
-    "vue": "^3.4.0"
+    "vue": "^3.4.0",
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",

@@ -11,13 +11,13 @@
     <div class="relative z-10 flex-1 flex flex-col items-center py-4 sm:py-8 px-2 sm:px-4">
       
       <!-- 1. 顶部导航栏 -->
-      <header class="w-full max-w-6xl mb-6 sm:mb-8 z-20 relative">
-        <nav class="flex justify-center">
-          <div class="flex flex-wrap justify-center gap-2 sm:gap-3 pb-2">
+      <header class="w-full max-w-6xl mb-4 sm:mb-6 z-20 relative">
+        <nav class="flex justify-center px-1">
+          <div class="flex flex-wrap justify-center gap-1 sm:gap-1.5 pb-1">
             <!-- 常用按钮 -->
             <button
               @click="activeCategory = 'frequent'"
-              class="px-3 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 border backdrop-blur-md"
+              class="px-2 sm:px-3 py-1 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition-all duration-300 border backdrop-blur-md"
               :class="activeCategory === 'frequent'
                 ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-500/30 scale-105'
                 : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white hover:border-white/30'"
@@ -28,49 +28,43 @@
             <!-- 我的收藏按钮 -->
             <button
               @click="activeCategory = 'favorites'"
-              class="px-3 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 border backdrop-blur-md flex items-center gap-1"
+              class="px-2 sm:px-3 py-1 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition-all duration-300 border backdrop-blur-md flex items-center gap-0.5"
               :class="activeCategory === 'favorites'
                 ? 'bg-gradient-to-r from-pink-600 to-purple-600 border-pink-500 text-white shadow-lg shadow-pink-500/30 scale-105'
                 : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white hover:border-white/30'"
             >
-              <svg class="w-3.5 h-3.5" :class="activeCategory === 'favorites' ? 'fill-current' : 'fill-none'" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <svg class="w-3 h-3" :class="activeCategory === 'favorites' ? 'fill-current' : 'fill-none'" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
               </svg>
               我的收藏
-            </button>
-
-            <!-- 私密按钮 -->
-            <button
-              @click="showPasswordModal = true"
-              class="px-3 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 border backdrop-blur-md flex items-center gap-1"
-              :class="activeCategory === 'private'
-                ? 'bg-gradient-to-r from-red-600 to-orange-600 border-red-500 text-white shadow-lg shadow-red-500/30 scale-105'
-                : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white hover:border-white/30'"
-            >
-              <svg class="w-3.5 h-3.5" :class="activeCategory === 'private' ? 'fill-current' : 'fill-none'" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-              私密
             </button>
 
             <!-- 分类按钮 -->
             <button
               v-for="(item, index) in navItems"
               :key="index"
-              @click="activeCategory = item.category"
-              class="px-3 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 border backdrop-blur-md"
-              :class="activeCategory === item.category
-                ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-500/30 scale-105'
-                : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white hover:border-white/30'"
+              @click="item.category === '私密' ? showPasswordModal = true : activeCategory = item.category"
+              class="px-2 sm:px-3 py-1 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition-all duration-300 border backdrop-blur-md inline-flex items-center justify-center gap-0.5 whitespace-nowrap"
+              :class="[
+                activeCategory === item.category
+                  ? (item.category === '私密' ? 'bg-gradient-to-r from-red-600 to-orange-600 border-red-500' : 'bg-purple-600 border-purple-500')
+                  : 'bg-white/5 border-white/10',
+                activeCategory === item.category
+                  ? 'text-white shadow-lg scale-105 ' + (item.category === '私密' ? 'shadow-red-500/30' : 'shadow-purple-500/30')
+                  : 'text-gray-400 hover:bg-white/10 hover:text-white hover:border-white/30'
+              ]"
             >
-              {{ item.category }}
+              <svg v-if="item.category === '私密'" class="w-3 h-3 flex-shrink-0" :class="activeCategory === item.category ? 'fill-current' : 'fill-none'" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              <span>{{ item.category }}</span>
             </button>
           </div>
         </nav>
       </header>
 
       <!-- 2. 搜索框 -->
-      <div class="relative w-full max-w-2xl mx-auto mb-8 sm:mb-10 group z-50 px-2">
+      <div class="relative w-full max-w-2xl mx-auto mb-6 sm:mb-8 group z-50 px-2">
         <div class="absolute -inset-0.5 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl sm:rounded-2xl opacity-30 blur transition duration-1000 group-hover:opacity-75 group-hover:duration-200"></div>
         <div class="relative flex items-center bg-gray-900/80 backdrop-blur-xl border border-white/10 rounded-xl sm:rounded-2xl p-1.5 sm:p-2 transition-colors focus-within:bg-gray-800/90 focus-within:border-white/20">
           <div class="relative">
@@ -111,17 +105,40 @@
       <div v-if="showEngineList" @click="showEngineList = false" class="fixed inset-0 z-40 bg-transparent cursor-default"></div>
 
       <!-- 3. 内容网格 -->
-      <div v-if="filteredItems.length > 0" class="w-full max-w-[72rem] grid grid-cols-4 md:grid-cols-6 xl:grid-cols-8 gap-2 px-4 pb-10 mx-auto">
-        <NavCard
-          v-for="item in filteredItems"
-          :key="item.id || item.url"
-          :item="item"
-          :on-click="recordClick"
-          :is-favorite="isFavorite(item)"
-          :last-visit="lastVisitTime(item.url)"
-          @toggle-favorite="toggleFavorite"
-          @record-visit="recordVisit"
-        />
+      <div v-if="draggablesList.length > 0" class="w-full max-w-[72rem] grid grid-cols-4 md:grid-cols-6 xl:grid-cols-8 gap-1.5 px-2 sm:px-3 pb-8 mx-auto">
+        <draggable
+          v-model="draggablesList"
+          item-key="id"
+          :disabled="!enableDrag"
+          @end="(evt) => onDragEnd(evt, activeCategory)"
+          class="contents"
+          :animation="300"
+          ghost-class="ghost-card"
+          drag-class="dragging-card"
+          chosen-class="chosen-card"
+        >
+          <template #item="{ element: item }">
+            <NavCard
+              :key="item.id || item.url"
+              :item="item"
+              :on-click="recordClick"
+              :is-favorite="isFavorite(item)"
+              :last-visit="lastVisitTime(item.url)"
+              @toggle-favorite="toggleFavorite"
+              @record-visit="recordVisit"
+            />
+          </template>
+        </draggable>
+      </div>
+
+      <!-- 拖拽提示（仅在启用拖拽时显示） -->
+      <div v-if="enableDrag && draggablesList.length > 0" class="fixed bottom-20 right-4 z-30 animate-bounce">
+        <div class="bg-gradient-to-r from-purple-600/90 to-pink-600/90 backdrop-blur-md text-white px-4 py-2 rounded-lg shadow-lg text-xs flex items-center gap-2 border border-white/20">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+          </svg>
+          <span>拖拽卡片可自定义排序</span>
+        </div>
       </div>
     </div>
 
@@ -251,7 +268,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import draggable from 'vuedraggable'
 // ✅ 引入 friendLinks
 import { navItems, searchEngines, friendLinks } from './data'
 import NavCard from './components/NavCard.vue'
@@ -273,6 +291,7 @@ const DATA_VERSION = '1.0' // 数据版本号
 const clickCounts = ref({})
 const favorites = ref(new Set())
 const visitHistory = ref({})
+const customOrder = ref({}) // 自定义排序 {category: [id1, id2, ...]}
 
 // 从 localStorage 加载数据
 onMounted(() => {
@@ -280,6 +299,7 @@ onMounted(() => {
   const saved = localStorage.getItem('navClickCounts')
   const savedFavorites = localStorage.getItem('navFavorites')
   const savedVisits = localStorage.getItem('navVisits')
+  const savedOrder = localStorage.getItem('navCustomOrder')
 
   // 如果版本不匹配，清理旧数据
   if (savedVersion !== DATA_VERSION) {
@@ -287,10 +307,12 @@ onMounted(() => {
     localStorage.removeItem('navClickCounts')
     localStorage.removeItem('navFavorites')
     localStorage.removeItem('navVisits')
+    localStorage.removeItem('navCustomOrder')
     localStorage.setItem('navDataVersion', DATA_VERSION)
     clickCounts.value = {}
     favorites.value = new Set()
     visitHistory.value = {}
+    customOrder.value = {}
   } else {
     // 加载点击统计
     if (saved) {
@@ -320,6 +342,16 @@ onMounted(() => {
       } catch (e) {
         console.error('Failed to parse visit history:', e)
         visitHistory.value = {}
+      }
+    }
+
+    // 加载自定义排序
+    if (savedOrder) {
+      try {
+        customOrder.value = JSON.parse(savedOrder)
+      } catch (e) {
+        console.error('Failed to parse custom order:', e)
+        customOrder.value = {}
       }
     }
   }
@@ -382,6 +414,71 @@ const cancelPassword = () => {
   passwordError.value = false
 }
 
+// === 拖拽排序逻辑 ===
+// 拖拽列表的响应式数据
+const draggablesList = ref([])
+
+// 处理拖拽结束事件
+const onDragEnd = (evt, categoryKey) => {
+  const { oldIndex, newIndex } = evt
+
+  // 如果位置没有变化，直接返回
+  if (oldIndex === newIndex) return
+
+  // 获取当前显示的项目
+  const currentItems = draggablesList.value
+
+  // 获取或创建当前分类的排序数组
+  if (!customOrder.value[categoryKey]) {
+    customOrder.value[categoryKey] = currentItems.map(item => item.id || item.url)
+  }
+
+  // 更新排序数组
+  const orderArray = [...customOrder.value[categoryKey]]
+
+  // 更新顺序
+  const movedItem = currentItems[oldIndex]
+  orderArray.splice(oldIndex, 1)
+  orderArray.splice(newIndex, 0, movedItem.id || movedItem.url)
+
+  customOrder.value[categoryKey] = orderArray
+
+  // 保存到 localStorage
+  localStorage.setItem('navCustomOrder', JSON.stringify(customOrder.value))
+
+  // 更新显示列表（重新应用排序）
+  draggablesList.value = [...filteredItems.value]
+}
+
+// 根据自定义排序对项目进行排序
+const sortItemsByCustomOrder = (items, categoryKey) => {
+  const order = customOrder.value[categoryKey]
+  if (!order || order.length === 0) return items
+
+  // 创建项目映射
+  const itemMap = {}
+  items.forEach(item => {
+    const key = item.id || item.url
+    itemMap[key] = item
+  })
+
+  // 按照自定义顺序返回
+  const sortedItems = []
+  order.forEach(key => {
+    if (itemMap[key]) {
+      sortedItems.push(itemMap[key])
+      delete itemMap[key]
+    }
+  })
+
+  // 添加新添加的项（不在自定义排序中的）
+  Object.values(itemMap).forEach(item => {
+    sortedItems.push(item)
+  })
+
+  return sortedItems
+}
+
 // === 逻辑函数 ===
 const switchEngine = (engine) => {
   currentEngine.value = engine
@@ -412,6 +509,7 @@ const handleImageError = (e) => {
 // 筛选逻辑
 const filteredItems = computed(() => {
   let items = []
+  let categoryKey = activeCategory.value
 
   if (activeCategory.value === 'frequent') {
     // 常用：显示最常访问的网站
@@ -429,6 +527,8 @@ const filteredItems = computed(() => {
         }
       })
     })
+    // 应用自定义排序
+    items = sortItemsByCustomOrder(items, 'favorites')
   } else if (activeCategory.value === 'private') {
     // 私密分类：需要密码验证
     if (!isPrivateUnlocked.value) {
@@ -437,11 +537,19 @@ const filteredItems = computed(() => {
     }
     // 查找私密分类
     const category = navItems.find(c => c.category === '私密')
-    if (category) items = category.items
+    if (category) {
+      items = category.items
+      // 应用自定义排序
+      items = sortItemsByCustomOrder(items, '私密')
+    }
   } else {
     // 普通分类
     const category = navItems.find(c => c.category === activeCategory.value)
-    if (category) items = category.items
+    if (category) {
+      items = category.items
+      // 应用自定义排序
+      items = sortItemsByCustomOrder(items, activeCategory.value)
+    }
   }
 
   if (searchQuery.value.trim()) {
@@ -453,4 +561,38 @@ const filteredItems = computed(() => {
   }
   return items
 })
+
+// 是否启用拖拽（常用分类不启用拖拽，因为它是动态生成的）
+const enableDrag = computed(() => {
+  return activeCategory.value !== 'frequent'
+})
+
+// 监听 activeCategory 变化，更新拖拽数组
+watch(activeCategory, () => {
+  draggablesList.value = [...filteredItems.value]
+}, { immediate: true })
+
+// 监听搜索查询变化，更新拖拽数组
+watch(searchQuery, () => {
+  draggablesList.value = [...filteredItems.value]
+})
 </script>
+
+<style>
+/* 拖拽样式 */
+.ghost-card {
+  opacity: 0.4;
+  background: rgba(168, 85, 247, 0.1);
+  border: 2px dashed rgba(168, 85, 247, 0.5);
+}
+
+.dragging-card {
+  transform: scale(1.05) rotate(2deg);
+  box-shadow: 0 20px 40px rgba(168, 85, 247, 0.4);
+  z-index: 100;
+}
+
+.chosen-card {
+  cursor: grabbing !important;
+}
+</style>

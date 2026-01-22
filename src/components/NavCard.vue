@@ -2,7 +2,7 @@
   <div
     @click="handleClick"
     @contextmenu.prevent="toggleFavorite"
-    class="group relative flex flex-col items-center justify-center py-2 sm:py-3 px-1 rounded-xl border transition-all duration-500 cursor-pointer h-full overflow-hidden"
+    class="group relative flex flex-col items-center justify-center py-1.5 sm:py-2 px-0.5 rounded-xl border transition-all duration-500 cursor-pointer h-full overflow-hidden"
     :class="[
       isFavorite ? 'bg-gradient-to-br from-purple-900/40 to-pink-900/40 border-pink-500/50 shadow-lg shadow-pink-500/20' : 'bg-gray-900/60 border-white/10 hover:border-purple-400/50',
       'hover:-translate-y-2 hover:shadow-2xl hover:shadow-purple-500/30'
@@ -14,11 +14,11 @@
     <!-- 收藏标记 -->
     <button
       @click.stop="toggleFavorite"
-      class="absolute top-1 right-1 z-10 p-1 rounded-full transition-all duration-300"
+      class="absolute top-0.5 right-0.5 z-10 p-0.5 rounded-full transition-all duration-300"
       :class="isFavorite ? 'opacity-100 scale-100' : 'opacity-0 group-hover:opacity-60 group-hover:scale-100 hover:opacity-100'"
     >
       <svg
-        class="w-4 h-4 transition-all duration-300"
+        class="w-3 h-3 transition-all duration-300"
         :class="isFavorite ? 'fill-pink-400 text-pink-400 scale-110 drop-shadow-[0_0_8px_rgba(244,114,182,0.8)]' : 'fill-none text-gray-400 hover:text-pink-300'"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -29,11 +29,11 @@
     </button>
 
     <!-- 图标容器 -->
-    <div class="relative mb-2 sm:mb-3">
+    <div class="relative mb-1.5 sm:mb-2">
       <!-- 图标光晕效果 -->
       <div class="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 scale-90 group-hover:scale-100"></div>
 
-      <div class="relative flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3">
+      <div class="relative flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3">
         <!-- 显示图片 -->
         <img
           v-if="!imageLoadError"
@@ -54,17 +54,17 @@
     </div>
 
     <!-- 文字部分 -->
-    <div class="text-center w-full px-1 relative z-10">
-      <h3 class="text-xs sm:text-sm font-semibold text-gray-200 tracking-wide group-hover:text-white transition-colors truncate leading-tight mb-0.5" :class="{ 'text-pink-300 group-hover:text-pink-200': isFavorite }">
+    <div class="text-center w-full px-0.5 relative z-10">
+      <h3 class="text-[10px] sm:text-xs font-semibold text-gray-200 tracking-wide group-hover:text-white transition-colors truncate leading-tight mb-0.5" :class="{ 'text-pink-300 group-hover:text-pink-200': isFavorite }">
         {{ item.name }}
       </h3>
-      <p class="text-[9px] sm:text-[10px] text-gray-400 line-clamp-1 group-hover:text-gray-200 transition-colors leading-tight">
+      <p class="text-[8px] sm:text-[9px] text-gray-400 line-clamp-1 group-hover:text-gray-200 transition-colors leading-tight">
         {{ item.desc }}
       </p>
 
       <!-- 最后访问时间 -->
-      <div v-if="lastVisitTime" class="mt-1.5 flex items-center justify-center gap-1 text-[8px] text-gray-500 group-hover:text-purple-400/80 transition-colors">
-        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div v-if="lastVisitTime" class="mt-1 flex items-center justify-center gap-0.5 text-[7px] text-gray-500 group-hover:text-purple-400/80 transition-colors">
+        <svg class="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         <span>{{ lastVisitTime }}</span>
