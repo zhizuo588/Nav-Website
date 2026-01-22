@@ -633,6 +633,20 @@ export const navItems = [
         desc: '视频网站'
       }
     ]
+  },
+  {
+    category: '私密',
+    items: [
+      // 在这里添加你不想公开的网址
+      // 示例：
+      // {
+      //   id: 1,
+      //   name: '私密服务',
+      //   url: 'http://localhost:8080',
+      //   desc: '不公开的服务',
+      //   iconUrl: '/icon.png'
+      // }
+    ]
   }
 ]
 
