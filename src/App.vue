@@ -86,6 +86,10 @@
           :key="item.id || item.url"
           :item="item"
           :on-click="recordClick"
+          :is-favorite="isFavorite(item)"
+          :last-visit="lastVisitTime(item.url)"
+          @toggle-favorite="toggleFavorite"
+          @record-visit="recordVisit"
         />
       </div>
     </div>
@@ -109,36 +113,51 @@
       </div>
     </footer>
 
-    <!-- 5. 友情链接弹窗 (新增) -->
+    <!-- 5. 友情链接弹窗 -->
     <div v-if="showFriendModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="showFriendModal = false">
-      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-      
-      <div class="relative bg-gray-800/90 border border-white/10 rounded-2xl shadow-2xl p-6 w-full max-w-2xl transform transition-all animate-in fade-in zoom-in duration-200">
-        <div class="flex justify-between items-center mb-6">
-          <h3 class="text-xl font-bold text-white flex items-center gap-2">
-            <span class="w-1 h-6 bg-purple-500 rounded-full"></span>
-            友情链接
-          </h3>
-          <button @click="showFriendModal = false" class="text-gray-400 hover:text-white transition-colors">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-          </button>
-        </div>
+      <div class="absolute inset-0 bg-black/70 backdrop-blur-md"></div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          <a 
-            v-for="(link, index) in friendLinks" 
-            :key="index"
-            :href="link.url"
-            target="_blank"
-            class="flex flex-col items-center p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-purple-500/30 transition-all group"
-          >
-            <img 
-              :src="getIconSrc(link)" 
-              @error="handleImageError"
-              class="w-10 h-10 rounded-lg mb-2 object-contain"
-            />
-            <span class="text-sm text-gray-300 group-hover:text-white">{{ link.name }}</span>
-          </a>
+      <div class="relative bg-gradient-to-br from-gray-800/95 to-gray-900/95 border border-white/10 rounded-3xl shadow-2xl p-8 w-full max-w-3xl transform transition-all">
+        <!-- 光效背景 -->
+        <div class="absolute inset-0 bg-gradient-to-br from-purple-600/10 via-transparent to-pink-600/10 rounded-3xl pointer-events-none"></div>
+
+        <div class="relative z-10">
+          <div class="flex justify-between items-center mb-8">
+            <h3 class="text-2xl font-bold text-white flex items-center gap-3">
+              <span class="w-1.5 h-8 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full shadow-lg shadow-purple-500/50"></span>
+              友情链接
+            </h3>
+            <button @click="showFriendModal = false" class="text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-xl">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            <a
+              v-for="(link, index) in friendLinks"
+              :key="index"
+              :href="link.url"
+              target="_blank"
+              class="group relative flex flex-col items-center p-4 rounded-2xl bg-gray-700/30 hover:bg-purple-600/20 border border-white/5 hover:border-purple-400/40 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20 hover:-translate-y-1 overflow-hidden"
+            >
+              <!-- 悬停背景光效 -->
+              <div class="absolute inset-0 bg-gradient-to-br from-purple-600/0 to-pink-600/0 group-hover:from-purple-600/10 group-hover:to-pink-600/10 transition-all duration-500"></div>
+
+              <!-- 图标容器 -->
+              <div class="relative mb-3">
+                <div class="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div class="relative flex h-14 w-14 items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                  <img
+                    :src="getIconSrc(link)"
+                    @error="handleImageError"
+                    class="h-full w-full object-contain rounded-xl drop-shadow-md"
+                  />
+                </div>
+              </div>
+
+              <span class="relative z-10 text-sm font-medium text-gray-300 group-hover:text-white transition-colors truncate w-full text-center">{{ link.name }}</span>
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -162,24 +181,56 @@ const currentEngine = ref(searchEngines[0])
 // === 点击统计 ===
 const DATA_VERSION = '1.0' // 数据版本号
 const clickCounts = ref({})
+const favorites = ref(new Set())
+const visitHistory = ref({})
 
-// 从 localStorage 加载点击统计
+// 从 localStorage 加载数据
 onMounted(() => {
   const savedVersion = localStorage.getItem('navDataVersion')
   const saved = localStorage.getItem('navClickCounts')
+  const savedFavorites = localStorage.getItem('navFavorites')
+  const savedVisits = localStorage.getItem('navVisits')
 
   // 如果版本不匹配，清理旧数据
   if (savedVersion !== DATA_VERSION) {
     console.log('数据版本已更新，清理旧缓存数据')
     localStorage.removeItem('navClickCounts')
+    localStorage.removeItem('navFavorites')
+    localStorage.removeItem('navVisits')
     localStorage.setItem('navDataVersion', DATA_VERSION)
     clickCounts.value = {}
-  } else if (saved) {
-    try {
-      clickCounts.value = JSON.parse(saved)
-    } catch (e) {
-      console.error('Failed to parse click counts:', e)
-      clickCounts.value = {}
+    favorites.value = new Set()
+    visitHistory.value = {}
+  } else {
+    // 加载点击统计
+    if (saved) {
+      try {
+        clickCounts.value = JSON.parse(saved)
+      } catch (e) {
+        console.error('Failed to parse click counts:', e)
+        clickCounts.value = {}
+      }
+    }
+
+    // 加载收藏列表
+    if (savedFavorites) {
+      try {
+        const favArray = JSON.parse(savedFavorites)
+        favorites.value = new Set(favArray)
+      } catch (e) {
+        console.error('Failed to parse favorites:', e)
+        favorites.value = new Set()
+      }
+    }
+
+    // 加载访问历史
+    if (savedVisits) {
+      try {
+        visitHistory.value = JSON.parse(savedVisits)
+      } catch (e) {
+        console.error('Failed to parse visit history:', e)
+        visitHistory.value = {}
+      }
     }
   }
 })
@@ -189,6 +240,35 @@ const recordClick = (item) => {
   const key = item.url
   clickCounts.value[key] = (clickCounts.value[key] || 0) + 1
   localStorage.setItem('navClickCounts', JSON.stringify(clickCounts.value))
+}
+
+// 记录访问时间
+const recordVisit = (item) => {
+  const key = item.url
+  visitHistory.value[key] = new Date().toISOString()
+  localStorage.setItem('navVisits', JSON.stringify(visitHistory.value))
+}
+
+// 获取最后访问时间
+const lastVisitTime = (url) => {
+  return visitHistory.value[url] || null
+}
+
+// 判断是否收藏
+const isFavorite = (item) => {
+  return favorites.value.has(item.url || item.id)
+}
+
+// 切换收藏状态
+const toggleFavorite = (item) => {
+  const key = item.url || item.id
+  if (favorites.value.has(key)) {
+    favorites.value.delete(key)
+  } else {
+    favorites.value.add(key)
+  }
+  // 保存到 localStorage
+  localStorage.setItem('navFavorites', JSON.stringify([...favorites.value]))
 }
 
 // === 逻辑函数 ===
