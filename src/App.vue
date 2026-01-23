@@ -13,16 +13,30 @@
       <!-- 1. 顶部导航栏 -->
       <header class="w-full max-w-6xl mb-4 sm:mb-6 z-20 relative">
         <div class="flex justify-between items-center mb-3 px-2">
-          <!-- 云同步按钮（仅图标） -->
-          <button
-            @click="showSyncModal = true"
-            class="p-1.5 rounded-full transition-all duration-300 border backdrop-blur-md inline-flex items-center justify-center bg-gradient-to-r from-blue-600/80 to-cyan-600/80 border-blue-500/50 text-white hover:shadow-lg hover:shadow-blue-500/30 hover:scale-110"
-            title="云同步"
-          >
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-            </svg>
-          </button>
+          <!-- 左侧按钮组 -->
+          <div class="flex gap-2">
+            <!-- 云同步按钮（仅图标） -->
+            <button
+              @click="showSyncModal = true"
+              class="p-1.5 rounded-full transition-all duration-300 border backdrop-blur-md inline-flex items-center justify-center bg-gradient-to-r from-blue-600/80 to-cyan-600/80 border-blue-500/50 text-white hover:shadow-lg hover:shadow-blue-500/30 hover:scale-110"
+              title="云同步"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+            </button>
+
+            <!-- 主题设置按钮 -->
+            <button
+              @click="showThemeModal = true"
+              class="p-1.5 rounded-full transition-all duration-300 border backdrop-blur-md inline-flex items-center justify-center bg-gradient-to-r from-purple-600/80 to-pink-600/80 border-purple-500/50 text-white hover:shadow-lg hover:shadow-purple-500/30 hover:scale-110"
+              title="主题设置"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+              </svg>
+            </button>
+          </div>
 
           <!-- 同步状态指示器 -->
           <div v-if="syncStatus" class="text-[10px] sm:text-xs" :class="syncStatus.type === 'success' ? 'text-green-400' : 'text-red-400'">
@@ -401,6 +415,9 @@
       </div>
     </div>
 
+    <!-- 8. 主题设置弹窗 -->
+    <ThemeModal :show="showThemeModal" @close="showThemeModal = false" />
+
   </div>
 </template>
 
@@ -410,6 +427,11 @@ import draggable from 'vuedraggable'
 // ✅ 引入 friendLinks
 import { navItems, searchEngines, friendLinks } from './data'
 import NavCard from './components/NavCard.vue'
+import ThemeModal from './components/ThemeModal.vue'
+import { useTheme } from './composables/useTheme'
+
+// 初始化主题系统
+const { settings: themeSettings } = useTheme()
 
 // === 状态定义 ===
 const activeCategory = ref('frequent')
@@ -418,6 +440,7 @@ const showEngineList = ref(false)
 const showFriendModal = ref(false) // 控制友链弹窗
 const showPasswordModal = ref(false) // 控制密码弹窗
 const showSyncModal = ref(false) // 控制同步弹窗
+const showThemeModal = ref(false) // 控制主题弹窗
 const passwordInput = ref('') // 密码输入
 const passwordError = ref(false) // 密码错误提示
 const isPrivateUnlocked = ref(false) // 私密分类是否已解锁
@@ -843,6 +866,35 @@ watch(searchQuery, () => {
 </script>
 
 <style>
+/* CSS 变量 */
+:root {
+  /* 主色调 */
+  --primary-from: rgb(147, 51, 234);
+  --primary-to: rgb(59, 130, 246);
+
+  /* 背景相关 */
+  --bg-image: url('/bg.jpg');
+  --bg-saturation: 100%;
+  --bg-overlay: rgba(0, 0, 0, 0.1);
+
+  /* 玻璃效果 */
+  --glass-blur: 12px;
+  --glass-bg-opacity: 0.7;
+  --glass-border: rgba(255, 255, 255, 0.1);
+
+  /* 文字颜色 */
+  --text-primary: #f3f4f6;
+  --text-secondary: #9ca3af;
+}
+
+/* 浅色模式覆盖 */
+.light {
+  --text-primary: #1f2937;
+  --text-secondary: #4b5563;
+  --glass-bg-opacity: 0.85;
+  --bg-overlay: rgba(0, 0, 0, 0.05);
+}
+
 /* 拖拽样式 */
 .ghost-card {
   opacity: 0.4;

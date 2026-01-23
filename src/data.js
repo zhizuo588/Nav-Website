@@ -426,6 +426,13 @@ export const navItems = [
         desc: 'AI开放平台'
       },
       {
+        id: 6,
+        name: 'DeepSeek',
+        url: 'https://www.deepseek.com/',
+        icon: 'link',
+        desc: 'AI开放平台'
+      },
+      {
         id: 7,
         name: 'Chatbox AI',
         url: 'https://chatboxai.app/',
