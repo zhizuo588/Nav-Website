@@ -203,6 +203,7 @@
         let migrated = 0;
         let skipped = 0;
         let errors = 0;
+        const errorDetails = []; // 存储详细错误信息
 
         const totalItems = window.navItemsData.reduce((sum, cat) => sum + cat.items.length, 0);
 
@@ -237,6 +238,14 @@
               } else if (response.status === 401) {
                 throw new Error('密码错误，请检查环境变量 PRIVATE_PASSWORD');
               } else {
+                // 记录详细错误
+                const errorData = await response.json();
+                errorDetails.push({
+                  name: item.name,
+                  url: item.url,
+                  status: response.status,
+                  error: errorData.error || errorData.message || '未知错误'
+                });
                 errors++;
               }
 
@@ -257,13 +266,29 @@
 
         // 显示结果
         resultDiv.className = errors > 0 ? 'error' : 'success';
+        let errorHtml = '';
+        if (errors > 0 && errorDetails.length > 0) {
+          errorHtml = `
+            <div style="margin-top: 15px; max-height: 200px; overflow-y: auto; background: #fff; padding: 10px; border-radius: 4px; font-size: 11px;">
+              <strong>错误详情（前 10 条）:</strong>
+              ${errorDetails.slice(0, 10).map(e => `
+                <div style="margin-top: 8px; padding: 5px; background: #fee; border-left: 3px solid #c33;">
+                  <div><strong>${e.name}</strong> (${e.status})</div>
+                  <div style="color: #666; margin-top: 2px;">${e.url}</div>
+                  <div style="color: #900; margin-top: 2px;">${e.error}</div>
+                </div>
+              `).join('')}
+              ${errorDetails.length > 10 ? `<div style="margin-top: 10px; text-align: center; color: #666;">... 还有 ${errorDetails.length - 10} 条错误</div>` : ''}
+            </div>
+          `;
+        }
         resultDiv.innerHTML = `
           <h3>${errors > 0 ? '⚠️ 迁移完成（有错误）' : '✅ 迁移成功'}</h3>
           <p><strong>新增:</strong> ${migrated} 条</p>
           <p><strong>跳过:</strong> ${skipped} 条（已存在）</p>
           <p><strong>错误:</strong> ${errors} 条</p>
           <p><strong>总计:</strong> ${migrated + skipped} 条</p>
-          ${errors > 0 ? '<p style="margin-top: 10px; font-size: 12px;">部分数据迁移失败，请检查控制台查看详细错误</p>' : ''}
+          ${errorHtml}
         `;
         resultDiv.style.display = 'block';
 
