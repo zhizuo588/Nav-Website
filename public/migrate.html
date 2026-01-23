@@ -46,8 +46,7 @@
       color: #555;
       font-weight: 500;
     }
-    input[type="password"],
-    input[type="url"] {
+    input[type="password"] {
       width: 100%;
       padding: 12px;
       border: 2px solid #e0e0e0;
@@ -163,11 +162,10 @@
     <div id="result"></div>
   </div>
 
-  <script type="module">
-    // 从 data.backup.js 导入数据
-    const dataModule = await import('/src/data.backup.js');
-    const { navItems } = dataModule;
-
+  <!-- 加载导航数据 -->
+  <script src="/nav-data.js"></script>
+  
+  <script>
     const form = document.getElementById('migrateForm');
     const migrateBtn = document.getElementById('migrateBtn');
     const resultDiv = document.getElementById('result');
@@ -180,6 +178,17 @@
       e.preventDefault();
 
       const password = document.getElementById('password').value;
+
+      // 检查数据是否加载成功
+      if (!window.navItemsData) {
+        resultDiv.className = 'error';
+        resultDiv.innerHTML = `
+          <h3>❌ 数据加载失败</h3>
+          <p>无法加载导航数据。请确认 /nav-data.js 文件存在。</p>
+        `;
+        resultDiv.style.display = 'block';
+        return;
+      }
 
       // 禁用按钮
       migrateBtn.disabled = true;
@@ -195,9 +204,9 @@
         let skipped = 0;
         let errors = 0;
 
-        const totalItems = navItems.reduce((sum, cat) => sum + cat.items.length, 0);
+        const totalItems = window.navItemsData.reduce((sum, cat) => sum + cat.items.length, 0);
 
-        for (const category of navItems) {
+        for (const category of window.navItemsData) {
           for (const item of category.items) {
             try {
               const response = await fetch(`${apiUrl}/api/websites/add`, {
