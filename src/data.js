@@ -6,7 +6,11 @@
  */
 export async function fetchNavItems() {
   try {
-    const response = await fetch('/api/websites/read')
+    // 使用 window.location.origin 确保在生产和开发环境都能正确访问 API
+    const apiPath = `${window.location.origin}/api/websites/read`
+    console.log('正在加载导航数据:', apiPath)
+
+    const response = await fetch(apiPath)
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
@@ -18,7 +22,12 @@ export async function fetchNavItems() {
       throw new Error(data.error)
     }
 
-    console.log(`✓ 成功加载 ${data.navItems.length} 个分类`)
+    if (!Array.isArray(data.navItems)) {
+      console.error('API 返回的数据格式不正确:', data)
+      throw new Error('navItems 不是数组')
+    }
+
+    console.log(`✓ 成功加载 ${data.navItems.length} 个分类`, data.navItems)
     return data.navItems
 
   } catch (error) {
