@@ -1,5 +1,5 @@
 // 数据迁移 API - 触发 data.js 到 D1 的迁移
-import { migrateToD1 } from '../../../scripts/migrate-to-d1.js'
+import { migrateToD1 } from '../../scripts/migrate-to-d1.js'
 
 export async function onRequest(context) {
   const { request, env } = context
