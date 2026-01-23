@@ -685,28 +685,3 @@ window.navItemsData = [
     ]
   }
 ]
-
-export const searchEngines = [
-  { id: 'google', name: 'Google', url: 'https://www.google.com/search?q=', icon: 'search' },
-  { id: 'bing', name: 'Bing', url: 'https://www.bing.com/search?q=', icon: 'search' },
-  { id: 'baidu', name: 'Baidu', url: 'https://www.baidu.com/s?wd=', icon: 'search' },
-  { id: 'github', name: 'GitHub', url: 'https://github.com/search?q=', icon: 'github' },
-  { id: 'searxng', name: 'SearXNG', url: 'https://serch.jishu.de5.net/search?q=', icon: 'search' }
-]
-
-export const friendLinks = [
-  {
-    name: 'NodeSeek',
-    url: 'https://www.nodeseek.com',
-    iconUrl: 'https://www.nodeseek.com/static/image/favicon.png'
-  },
-  {
-    name: 'Linux Do',
-    url: 'https://linux.do',
-    // 如果没有 iconUrl，会自动用 Google 获取
-  },
-  {
-    name: 'NodeLoc',
-    url: 'https://www.nodeloc.com/'
-  }
-];
