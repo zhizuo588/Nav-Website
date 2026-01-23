@@ -1090,6 +1090,8 @@ const syncFromCloud = async () => {
       clickCounts.value = data.clicks || {}
 
       console.log('✓ 已应用 categoryOrder 到响应式变量:', categoryOrder.value)
+      console.log('✓ categoryOrder 类型:', typeof categoryOrder.value, '是否为数组:', Array.isArray(categoryOrder.value))
+      console.log('✓ categoryOrder 长度:', categoryOrder.value.length)
 
       // 保存到 localStorage
       localStorage.setItem('navFavorites', JSON.stringify(data.favorites))
@@ -1098,8 +1100,16 @@ const syncFromCloud = async () => {
       localStorage.setItem('navVisits', JSON.stringify(data.visits))
       localStorage.setItem('navClickCounts', JSON.stringify(data.clicks))
 
-      // 刷新显示
+      console.log('✓ 已保存 categoryOrder 到 localStorage')
+
+      // 验证 localStorage 是否正确保存
+      const savedOrder = localStorage.getItem('navCategoryOrder')
+      console.log('✓ 从 localStorage 验证读取:', savedOrder ? JSON.parse(savedOrder) : 'null')
+
+      // 强制刷新显示
       draggablesList.value = [...filteredItems.value]
+
+      console.log('✓ 当前 sortedNavItems 的顺序:', sortedNavItems.value.map(item => item.category))
 
       syncStatus.value = { type: 'success', message: '✅ 已从云端恢复' }
       setTimeout(() => {
