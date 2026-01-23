@@ -85,7 +85,7 @@
               我的收藏
             </button>
 
-            <!-- 分类按钮（支持拖拽排序） -->
+            <!-- 分类按钮（支持拖拽排序、编辑和删除） -->
             <button
               v-for="(item, index) in sortedNavItems"
               :key="item.category"
@@ -93,8 +93,8 @@
               @dragstart="onCategoryDragStart($event, index)"
               @dragover.prevent="onCategoryDragOver($event, index)"
               @dragend="onCategoryDragEnd"
-              @click="item.category === '私密' ? showPasswordModal = true : activeCategory = item.category"
-              class="px-2 sm:px-3 py-1 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition-all duration-300 border backdrop-blur-md inline-flex items-center justify-center gap-0.5 whitespace-nowrap"
+              @click="handleCategoryClick(item)"
+              class="px-2 sm:px-3 py-1 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition-all duration-300 border backdrop-blur-md inline-flex items-center justify-center gap-0.5 whitespace-nowrap relative"
               :class="[
                 activeCategory === item.category
                   ? (item.category === '私密' ? 'bg-gradient-to-r from-red-600 to-orange-600 border-red-500' : 'bg-purple-600 border-purple-500')
@@ -113,6 +113,40 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
               <span>{{ item.category }}</span>
+
+              <!-- 编辑和删除按钮（仅在编辑模式显示） -->
+              <template v-if="isCategoryEditModeActive">
+                <button
+                  @click.stop="editCategory(item.category)"
+                  class="ml-1 p-0.5 rounded-full hover:bg-white/20 transition-colors"
+                  title="重命名分类"
+                >
+                  <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+                <button
+                  @click.stop="deleteCategory(item.category)"
+                  class="ml-0.5 p-0.5 rounded-full hover:bg-red-500/30 transition-colors text-red-400"
+                  title="删除分类"
+                >
+                  <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </template>
+            </button>
+
+            <!-- 新建分类按钮（仅在编辑模式显示） -->
+            <button
+              v-if="isCategoryEditModeActive"
+              @click="createNewCategory"
+              class="px-2 sm:px-3 py-1 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition-all duration-300 border backdrop-blur-md inline-flex items-center justify-center gap-0.5 whitespace-nowrap border-dashed border-green-500/50 text-green-400 hover:bg-green-500/20 hover:border-green-500"
+            >
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              <span>新建</span>
             </button>
           </div>
         </nav>
@@ -490,6 +524,116 @@ const toggleCategoryEditMode = () => {
   if (!isCategoryEditModeActive.value) {
     // 退出编辑模式时保存顺序
     saveCategoryOrder()
+  }
+}
+
+// 处理分类按钮点击
+const handleCategoryClick = (item) => {
+  if (isCategoryEditModeActive.value) {
+    // 编辑模式下不切换分类
+    return
+  }
+
+  if (item.category === '私密') {
+    showPasswordModal.value = true
+  } else {
+    activeCategory.value = item.category
+  }
+}
+
+// 重命名分类
+const editCategory = async (oldName) => {
+  const newName = prompt(`请输入「${oldName}」的新名称：`, oldName)
+
+  if (!newName || newName === oldName) {
+    return
+  }
+
+  try {
+    const response = await fetch('/api/categories/rename', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${prompt('请输入管理员密码：')}`
+      },
+      body: JSON.stringify({ oldName, newName })
+    })
+
+    const result = await response.json()
+
+    if (response.ok && result.success) {
+      alert(result.message)
+      // 重新加载数据
+      location.reload()
+    } else {
+      alert('重命名失败：' + (result.error || result.message))
+    }
+  } catch (error) {
+    alert('重命名失败：' + error.message)
+  }
+}
+
+// 删除分类
+const deleteCategory = async (categoryName) => {
+  const confirmed = confirm(`确定要删除分类「${categoryName}」吗？\n\n注意：这将删除该分类下的所有网站！`)
+
+  if (!confirmed) {
+    return
+  }
+
+  try {
+    const response = await fetch('/api/categories/delete', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${prompt('请输入管理员密码：')}`
+      },
+      body: JSON.stringify({ name: categoryName })
+    })
+
+    const result = await response.json()
+
+    if (response.ok && result.success) {
+      alert(result.message)
+      // 重新加载数据
+      location.reload()
+    } else {
+      alert('删除失败：' + (result.error || result.message))
+    }
+  } catch (error) {
+    alert('删除失败：' + error.message)
+  }
+}
+
+// 新建分类
+const createNewCategory = async () => {
+  const name = prompt('请输入新分类的名称：')
+
+  if (!name || !name.trim()) {
+    return
+  }
+
+  try {
+    const response = await fetch('/api/categories/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${prompt('请输入管理员密码：')}`
+      },
+      body: JSON.stringify({ name: name.trim() })
+    })
+
+    const result = await response.json()
+
+    if (response.ok && result.success) {
+      alert(result.message)
+      // 重新加载数据
+      location.reload()
+    } else {
+      alert('创建失败：' + (result.error || result.message))
+    }
+  } catch (error) {
+    alert('创建失败：' + error.message)
   }
 }
 

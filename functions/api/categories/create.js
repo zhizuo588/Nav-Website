@@ -1,0 +1,72 @@
+// 创建新分类
+export async function onRequest(context) {
+  const { request, env } = context
+
+  // CORS
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+      }
+    })
+  }
+
+  if (request.method !== 'POST') {
+    return jsonResponse({ error: 'Method not allowed' }, 405)
+  }
+
+  // 验证密码
+  const authHeader = request.headers.get('Authorization')
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return jsonResponse({ error: '需要密码验证' }, 401)
+  }
+
+  const password = authHeader.replace('Bearer ', '')
+  const correctPassword = env.PRIVATE_PASSWORD
+
+  if (!correctPassword || password !== correctPassword) {
+    return jsonResponse({ error: '密码错误' }, 401)
+  }
+
+  try {
+    const { name } = await request.json()
+
+    if (!name) {
+      return jsonResponse({ error: '缺少分类名称' }, 400)
+    }
+
+    // 检查分类名是否已存在
+    const existingCategory = await env.DB.prepare(
+      'SELECT COUNT(*) as count FROM websites WHERE category = ?'
+    ).bind(name).first()
+
+    if (existingCategory.count > 0) {
+      return jsonResponse({ error: '该分类已存在' }, 409)
+    }
+
+    return jsonResponse({
+      success: true,
+      message: `分类「${name}」创建成功`,
+      category: name
+    })
+
+  } catch (error) {
+    console.error('创建分类失败:', error)
+    return jsonResponse({
+      error: '创建失败',
+      message: error.message
+    }, 500)
+  }
+}
+
+function jsonResponse(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*'
+    }
+  })
+}
