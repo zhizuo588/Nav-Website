@@ -424,8 +424,8 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import draggable from 'vuedraggable'
-// ✅ 引入 friendLinks
-import { navItems, searchEngines, friendLinks } from './data'
+// ✅ 引入搜索引擎和友情链接
+import { fetchNavItems, searchEngines, friendLinks } from './data'
 import NavCard from './components/NavCard.vue'
 import ThemeModal from './components/ThemeModal.vue'
 import { useTheme } from './composables/useTheme'
@@ -434,6 +434,7 @@ import { useTheme } from './composables/useTheme'
 const { settings: themeSettings } = useTheme()
 
 // === 状态定义 ===
+const navItems = ref([])  // 改为响应式数组
 const activeCategory = ref('frequent')
 const searchQuery = ref('')
 const showEngineList = ref(false)
@@ -444,7 +445,6 @@ const showThemeModal = ref(false) // 控制主题弹窗
 const passwordInput = ref('') // 密码输入
 const passwordError = ref(false) // 密码错误提示
 const isPrivateUnlocked = ref(false) // 私密分类是否已解锁
-const PRIVATE_PASSWORD = 'sbp844695' // 私密分类密码（可自定义）
 const currentEngine = ref(searchEngines[0])
 
 // === 云同步状态 ===
@@ -479,7 +479,15 @@ const visitHistory = ref({})
 const customOrder = ref({}) // 自定义排序 {category: [id1, id2, ...]}
 
 // 从 localStorage 加载数据
-onMounted(() => {
+onMounted(async () => {
+  // 加载导航网站数据（从 D1 数据库）
+  try {
+    navItems.value = await fetchNavItems()
+    console.log('✓ 导航数据加载完成')
+  } catch (error) {
+    console.error('✗ 导航数据加载失败:', error)
+  }
+
   const savedVersion = localStorage.getItem('navDataVersion')
   const saved = localStorage.getItem('navClickCounts')
   const savedFavorites = localStorage.getItem('navFavorites')
@@ -579,15 +587,30 @@ const toggleFavorite = (item) => {
 }
 
 // === 密码验证逻辑 ===
-// 验证密码
-const verifyPassword = () => {
-  if (passwordInput.value === PRIVATE_PASSWORD) {
-    isPrivateUnlocked.value = true
-    showPasswordModal.value = false
-    activeCategory.value = 'private'
-    passwordError.value = false
-    passwordInput.value = ''
-  } else {
+// 验证密码（通过 API）
+const verifyPassword = async () => {
+  try {
+    const response = await fetch('/api/private/verify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ password: passwordInput.value })
+    })
+
+    const result = await response.json()
+
+    if (response.ok && result.success) {
+      isPrivateUnlocked.value = true
+      showPasswordModal.value = false
+      activeCategory.value = 'private'
+      passwordError.value = false
+      passwordInput.value = ''
+    } else {
+      passwordError.value = true
+    }
+  } catch (error) {
+    console.error('密码验证失败:', error)
     passwordError.value = true
   }
 }

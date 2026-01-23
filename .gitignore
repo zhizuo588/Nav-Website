@@ -39,6 +39,11 @@ captures/
 .aws/
 .azure/
 
+# Environment variables（敏感信息）
+.dev.vars
+.dev.vars.local
+.wrangler/
+
 # Other cache files
 .cache/
 .pub-cache/

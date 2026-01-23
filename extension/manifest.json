@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "导航网站收藏助手",
+  "version": "1.0.0",
+  "description": "快速收藏网站到你的个人导航，支持从浏览器书签导入",
+  "permissions": [
+    "storage",
+    "contextMenus",
+    "activeTab",
+    "bookmarks",
+    "notifications"
+  ],
+  "host_permissions": [
+    "http://localhost:5173/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup/popup.html"
+  },
+  "options_page": "options/options.html"
+}

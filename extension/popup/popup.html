@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>导航网站收藏助手</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📌 导航收藏助手</h1>
+    </header>
+
+    <div class="actions">
+      <button id="savePage" class="btn-primary">
+        <span class="icon">📌</span>
+        <span class="text">收藏当前页面</span>
+      </button>
+
+      <button id="importBookmarks" class="btn-secondary">
+        <span class="icon">📚</span>
+        <span class="text">导入浏览器书签</span>
+      </button>
+
+      <button id="openSettings" class="btn-secondary">
+        <span class="icon">⚙️</span>
+        <span class="text">设置</span>
+      </button>
+    </div>
+
+    <div class="status" id="status"></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

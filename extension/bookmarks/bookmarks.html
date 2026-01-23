@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>导入浏览器收藏夹</title>
+  <link rel="stylesheet" href="bookmarks.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📚 导入浏览器收藏夹</h1>
+      <p class="subtitle">选择要导入的书签，点击"导入选中"按钮</p>
+    </header>
+
+    <!-- 工具栏 -->
+    <div class="toolbar">
+      <button id="selectAll">全选</button>
+      <button id="deselectAll">取消全选</button>
+      <span class="stats">
+        已选择 <strong id="selectedCount">0</strong> 个书签
+      </span>
+    </div>
+
+    <!-- 书签树 -->
+    <div class="bookmarks-container">
+      <div id="loading">正在加载书签...</div>
+      <div id="bookmarksTree"></div>
+    </div>
+
+    <!-- 导入按钮 -->
+    <div class="actions">
+      <button id="importSelected" class="btn-primary" disabled>
+        导入选中书签 (<span id="importCount">0</span>)
+      </button>
+      <button id="cancel" class="btn-secondary">取消</button>
+    </div>
+
+    <!-- 导入进度 -->
+    <div id="progress" class="progress-bar hidden">
+      <div class="progress-fill"></div>
+      <span class="progress-text">正在导入...</span>
+    </div>
+
+    <!-- 导入结果 -->
+    <div id="result" class="result hidden"></div>
+  </div>
+
+  <script src="bookmarks.js"></script>
+</body>
+</html>
