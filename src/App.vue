@@ -121,8 +121,10 @@
               <template v-if="isCategoryEditModeActive">
                 <button
                   @click.stop="editCategory(item.category)"
+                  @mousedown.stop
                   class="ml-1 p-0.5 rounded-full hover:bg-white/20 transition-colors"
                   title="重命名分类"
+                  style="pointer-events: auto; cursor: pointer;"
                 >
                   <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -130,8 +132,10 @@
                 </button>
                 <button
                   @click.stop="deleteCategory(item.category)"
+                  @mousedown.stop
                   class="ml-0.5 p-0.5 rounded-full hover:bg-red-500/30 transition-colors text-red-400"
                   title="删除分类"
+                  style="pointer-events: auto; cursor: pointer;"
                 >
                   <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -738,18 +742,32 @@ const onCategoryDragEnter = (event, index) => {
     return
   }
 
-  // 可以在这里添加目标位置的视觉反馈
-  console.log('拖拽进入目标:', index)
+  // 添加目标位置的视觉反馈
+  event.target.style.transform = 'scale(1.05)'
+  event.target.style.boxShadow = '0 0 0 2px rgba(168, 85, 247, 0.5)'
+  console.log('拖拽进入目标:', index, '可以将', sortedNavItems.value[draggingCategoryIndex.value]?.category, '移动到', sortedNavItems.value[index]?.category)
 }
 
 // 分类拖拽离开
 const onCategoryDragLeave = (event) => {
   // 清除视觉反馈
+  if (event.target && draggingCategoryIndex.value !== sortedNavItems.value.findIndex(item => item.category === event.target.textContent?.trim())) {
+    event.target.style.transform = ''
+    event.target.style.boxShadow = ''
+  }
 }
 
 // 分类放下
 const onCategoryDrop = (event, targetIndex) => {
   event.preventDefault()
+  event.stopPropagation()
+
+  // 清除目标位置的视觉反馈
+  if (event.target) {
+    event.target.style.transform = ''
+    event.target.style.boxShadow = ''
+  }
+
   console.log('放下到位置:', targetIndex, '从位置:', draggingCategoryIndex.value)
 
   const fromIndex = draggingCategoryIndex.value
@@ -766,7 +784,7 @@ const onCategoryDrop = (event, targetIndex) => {
   const draggedItem = items[fromIndex]
   items.splice(fromIndex, 1)
 
-  // 插入到新位置
+  // 插入到新位置（全局拖拽 - 可以跨越任意距离）
   items.splice(targetIndex, 0, draggedItem)
 
   // 更新临时顺序
@@ -774,6 +792,7 @@ const onCategoryDrop = (event, targetIndex) => {
   draggingCategoryIndex.value = targetIndex
 
   console.log('更新后的临时顺序:', tempCategoryOrder.value)
+  console.log(`✓ 已将「${draggedItem}」从位置 ${fromIndex} 移动到位置 ${targetIndex}`)
 }
 
 // 切换拖拽模式
