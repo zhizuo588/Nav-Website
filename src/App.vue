@@ -36,6 +36,20 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
               </svg>
             </button>
+
+            <!-- 编辑分类按钮 -->
+            <button
+              @click="toggleCategoryEditMode"
+              class="p-1.5 rounded-full transition-all duration-300 border backdrop-blur-md inline-flex items-center justify-center"
+              :class="isCategoryEditModeActive
+                ? 'bg-gradient-to-r from-orange-600/80 to-red-600/80 border-orange-500/50 text-white hover:shadow-lg hover:shadow-orange-500/30'
+                : 'bg-white/10 border-white/20 text-gray-400 hover:bg-white/20 hover:text-white'"
+              :title="isCategoryEditModeActive ? '完成编辑分类' : '编辑分类顺序'"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+              </svg>
+            </button>
           </div>
 
           <!-- 同步状态指示器 -->
@@ -71,10 +85,14 @@
               我的收藏
             </button>
 
-            <!-- 分类按钮 -->
+            <!-- 分类按钮（支持拖拽排序） -->
             <button
-              v-for="(item, index) in navItems"
-              :key="index"
+              v-for="(item, index) in sortedNavItems"
+              :key="item.category"
+              draggable="isCategoryEditModeActive"
+              @dragstart="onCategoryDragStart($event, index)"
+              @dragover.prevent="onCategoryDragOver($event, index)"
+              @dragend="onCategoryDragEnd"
               @click="item.category === '私密' ? showPasswordModal = true : activeCategory = item.category"
               class="px-2 sm:px-3 py-1 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition-all duration-300 border backdrop-blur-md inline-flex items-center justify-center gap-0.5 whitespace-nowrap"
               :class="[
@@ -83,9 +101,14 @@
                   : 'bg-white/5 border-white/10',
                 activeCategory === item.category
                   ? 'text-white shadow-lg scale-105 ' + (item.category === '私密' ? 'shadow-red-500/30' : 'shadow-purple-500/30')
-                  : 'text-gray-400 hover:bg-white/10 hover:text-white hover:border-white/30'
+                  : 'text-gray-400 hover:bg-white/10 hover:text-white hover:border-white/30',
+                isCategoryEditModeActive ? 'cursor-move opacity-80 hover:scale-105' : '',
+                draggingCategoryIndex === index ? 'opacity-40' : ''
               ]"
             >
+              <svg v-if="isCategoryEditModeActive" class="w-2.5 h-2.5 mr-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+              </svg>
               <svg v-if="item.category === '私密'" class="w-3 h-3 flex-shrink-0" :class="activeCategory === item.category ? 'fill-current' : 'fill-none'" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
@@ -456,6 +479,87 @@ const syncStatus = ref(null)
 // === 拖拽模式控制 ===
 const isDragModeActive = ref(false) // 拖拽模式是否激活
 
+// === 分类编辑模式 ===
+const isCategoryEditModeActive = ref(false) // 分类编辑模式是否激活
+const categoryOrder = ref([]) // 分类自定义顺序
+const draggingCategoryIndex = ref(-1) // 正在拖拽的分类索引
+
+// 切换分类编辑模式
+const toggleCategoryEditMode = () => {
+  isCategoryEditModeActive.value = !isCategoryEditModeActive.value
+  if (!isCategoryEditModeActive.value) {
+    // 退出编辑模式时保存顺序
+    saveCategoryOrder()
+  }
+}
+
+// 保存分类顺序
+const saveCategoryOrder = () => {
+  // 保存到 localStorage
+  localStorage.setItem('navCategoryOrder', JSON.stringify(categoryOrder.value))
+}
+
+// 按照自定义顺序排序分类
+const sortedNavItems = computed(() => {
+  const items = navItems.value
+  if (categoryOrder.value.length === 0) {
+    return items
+  }
+
+  // 创建排序后的数组
+  const sorted = []
+  const ordered = new Set(categoryOrder.value)
+  const remaining = []
+
+  // 先按照自定义顺序排列
+  categoryOrder.value.forEach(cat => {
+    const found = items.find(item => item.category === cat)
+    if (found) sorted.push(found)
+  })
+
+  // 然后添加未排序的分类
+  items.forEach(item => {
+    if (!ordered.has(item.category)) {
+      remaining.push(item)
+    }
+  })
+
+  return [...sorted, ...remaining]
+})
+
+// 分类拖拽开始
+const onCategoryDragStart = (event, index) => {
+  draggingCategoryIndex.value = index
+  event.dataTransfer.effectAllowed = 'move'
+  event.dataTransfer.setData('text/html', event.target.innerHTML)
+}
+
+// 分类拖拽结束
+const onCategoryDragEnd = () => {
+  draggingCategoryIndex.value = -1
+}
+
+// 分类拖拽经过
+const onCategoryDragOver = (event, index) => {
+  if (draggingCategoryIndex.value === -1 || draggingCategoryIndex.value === index) {
+    return
+  }
+
+  // 获取当前排序的分类列表
+  const currentOrder = sortedNavItems.value.map(item => item.category)
+  const items = [...currentOrder]
+
+  // 移动元素
+  const draggedItem = items[draggingCategoryIndex.value]
+  items.splice(draggingCategoryIndex.value, 1)
+  items.splice(index, 0, draggedItem)
+
+  // 更新分类顺序
+  categoryOrder.value = items
+
+  draggingCategoryIndex.value = index
+}
+
 // 切换拖拽模式
 const toggleDragMode = () => {
   isDragModeActive.value = !isDragModeActive.value
@@ -493,6 +597,7 @@ onMounted(async () => {
   const savedFavorites = localStorage.getItem('navFavorites')
   const savedVisits = localStorage.getItem('navVisits')
   const savedOrder = localStorage.getItem('navCustomOrder')
+  const savedCategoryOrder = localStorage.getItem('navCategoryOrder')
 
   // 如果版本不匹配，清理旧数据
   if (savedVersion !== DATA_VERSION) {
@@ -501,11 +606,13 @@ onMounted(async () => {
     localStorage.removeItem('navFavorites')
     localStorage.removeItem('navVisits')
     localStorage.removeItem('navCustomOrder')
+    localStorage.removeItem('navCategoryOrder')
     localStorage.setItem('navDataVersion', DATA_VERSION)
     clickCounts.value = {}
     favorites.value = new Set()
     visitHistory.value = {}
     customOrder.value = {}
+    categoryOrder.value = []
   } else {
     // 加载点击统计
     if (saved) {
@@ -545,6 +652,16 @@ onMounted(async () => {
       } catch (e) {
         console.error('Failed to parse custom order:', e)
         customOrder.value = {}
+      }
+    }
+
+    // 加载分类顺序
+    if (savedCategoryOrder) {
+      try {
+        categoryOrder.value = JSON.parse(savedCategoryOrder)
+      } catch (e) {
+        console.error('Failed to parse category order:', e)
+        categoryOrder.value = []
       }
     }
   }
@@ -678,6 +795,7 @@ const syncToCloud = async () => {
       body: JSON.stringify({
         favorites: [...favorites.value],
         order: customOrder.value,
+        categoryOrder: categoryOrder.value,
         visits: visitHistory.value,
         clicks: clickCounts.value,
         timestamp: Date.now()
@@ -713,12 +831,14 @@ const syncFromCloud = async () => {
       // 更新本地数据
       favorites.value = new Set(data.favorites)
       customOrder.value = data.order || {}
+      categoryOrder.value = data.categoryOrder || []
       visitHistory.value = data.visits || {}
       clickCounts.value = data.clicks || {}
 
       // 保存到 localStorage
       localStorage.setItem('navFavorites', JSON.stringify(data.favorites))
       localStorage.setItem('navCustomOrder', JSON.stringify(data.order))
+      localStorage.setItem('navCategoryOrder', JSON.stringify(data.categoryOrder))
       localStorage.setItem('navVisits', JSON.stringify(data.visits))
       localStorage.setItem('navClickCounts', JSON.stringify(data.clicks))
 
