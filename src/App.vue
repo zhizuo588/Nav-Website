@@ -91,11 +91,14 @@
               :key="item.category"
               draggable="isCategoryEditModeActive"
               @dragstart="onCategoryDragStart($event, index)"
-              @dragover.prevent="onCategoryDragOver"
-              @drop="onCategoryDrop($event, index)"
               @dragend="onCategoryDragEnd"
+              @dragover.prevent="onCategoryDragOver"
+              @dragenter="onCategoryDragEnter($event, index)"
+              @dragleave="onCategoryDragLeave"
+              @drop="onCategoryDrop($event, index)"
               @click="handleCategoryClick(item)"
               class="px-2 sm:px-3 py-1 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition-all duration-300 border backdrop-blur-md inline-flex items-center justify-center gap-0.5 whitespace-nowrap relative"
+              :style="isCategoryEditModeActive ? 'cursor: grab; transition: all 0.2s;' : ''"
               :class="[
                 activeCategory === item.category
                   ? (item.category === '私密' ? 'bg-gradient-to-r from-red-600 to-orange-600 border-red-500' : 'bg-purple-600 border-purple-500')
@@ -103,8 +106,7 @@
                 activeCategory === item.category
                   ? 'text-white shadow-lg scale-105 ' + (item.category === '私密' ? 'shadow-red-500/30' : 'shadow-purple-500/30')
                   : 'text-gray-400 hover:bg-white/10 hover:text-white hover:border-white/30',
-                isCategoryEditModeActive ? 'cursor-move opacity-80 hover:scale-105' : '',
-                draggingCategoryIndex === index ? 'opacity-40' : ''
+                draggingCategoryIndex === index ? 'opacity-30 scale-95' : ''
               ]"
             >
               <svg v-if="isCategoryEditModeActive" class="w-2.5 h-2.5 mr-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -681,26 +683,42 @@ const sortedNavItems = computed(() => {
 
 // 分类拖拽开始
 const onCategoryDragStart = (event, index) => {
+  console.log('拖拽开始:', index, sortedNavItems.value[index]?.category)
   draggingCategoryIndex.value = index
   draggedCategoryName.value = sortedNavItems.value[index].category
 
   // 创建临时顺序的副本
   tempCategoryOrder.value = sortedNavItems.value.map(item => item.category)
 
+  // 设置拖拽数据
   event.dataTransfer.effectAllowed = 'move'
   event.dataTransfer.setData('text/plain', index.toString())
 
-  // 设置拖拽图像
-  event.target.style.opacity = '0.5'
+  // 添加拖拽视觉反馈
+  setTimeout(() => {
+    if (event.target) {
+      event.target.style.opacity = '0.4'
+      event.target.style.transform = 'scale(0.95)'
+    }
+  }, 0)
+
+  console.log('临时顺序:', tempCategoryOrder.value)
 }
 
 // 分类拖拽结束
 const onCategoryDragEnd = (event) => {
-  event.target.style.opacity = '1'
+  console.log('拖拽结束，应用顺序:', tempCategoryOrder.value)
 
-  if (draggingCategoryIndex.value !== -1) {
+  // 恢复样式
+  if (event.target) {
+    event.target.style.opacity = ''
+    event.target.style.transform = ''
+  }
+
+  if (draggingCategoryIndex.value !== -1 && tempCategoryOrder.value.length > 0) {
     // 应用临时顺序
     categoryOrder.value = [...tempCategoryOrder.value]
+    console.log('最终保存顺序:', categoryOrder.value)
   }
 
   draggingCategoryIndex.value = -1
@@ -708,17 +726,41 @@ const onCategoryDragEnd = (event) => {
   tempCategoryOrder.value = []
 }
 
-// 分类拖拽进入（使用 drop 而不是 dragover）
+// 分类拖拽经过（阻止默认行为以允许 drop）
+const onCategoryDragOver = (event) => {
+  event.preventDefault()
+  event.dataTransfer.dropEffect = 'move'
+}
+
+// 分类拖拽进入（用于视觉反馈）
+const onCategoryDragEnter = (event, index) => {
+  if (draggingCategoryIndex.value === -1 || draggingCategoryIndex.value === index) {
+    return
+  }
+
+  // 可以在这里添加目标位置的视觉反馈
+  console.log('拖拽进入目标:', index)
+}
+
+// 分类拖拽离开
+const onCategoryDragLeave = (event) => {
+  // 清除视觉反馈
+}
+
+// 分类放下
 const onCategoryDrop = (event, targetIndex) => {
   event.preventDefault()
+  console.log('放下到位置:', targetIndex, '从位置:', draggingCategoryIndex.value)
 
   const fromIndex = draggingCategoryIndex.value
   if (fromIndex === -1 || fromIndex === targetIndex) {
+    console.log('无效的拖拽操作')
     return
   }
 
   // 获取当前临时顺序
   const items = [...tempCategoryOrder.value]
+  console.log('当前临时顺序:', items)
 
   // 移除被拖拽的元素
   const draggedItem = items[fromIndex]
@@ -730,12 +772,8 @@ const onCategoryDrop = (event, targetIndex) => {
   // 更新临时顺序
   tempCategoryOrder.value = items
   draggingCategoryIndex.value = targetIndex
-}
 
-// 分类拖拽经过（阻止默认行为以允许 drop）
-const onCategoryDragOver = (event) => {
-  event.preventDefault()
-  event.dataTransfer.dropEffect = 'move'
+  console.log('更新后的临时顺序:', tempCategoryOrder.value)
 }
 
 // 切换拖拽模式
