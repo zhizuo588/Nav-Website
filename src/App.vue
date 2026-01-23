@@ -947,6 +947,9 @@ const handleLogin = async () => {
       localStorage.setItem('syncAuthToken', result.token) // 用用户 token 替换设备 ID
       syncAuthToken.value = result.token
 
+      // 从云端恢复用户数据
+      await syncFromCloud()
+
       syncStatus.value = { type: 'success', message: `✅ 欢迎回来，${result.username}！` }
       setTimeout(() => syncStatus.value = null, 2000)
     } else {
@@ -1062,6 +1065,17 @@ onMounted(async () => {
         console.error('Failed to parse category order:', e)
         categoryOrder.value = []
       }
+    }
+  }
+
+  // 如果用户已登录，自动从云端恢复数据
+  if (localStorage.getItem('userToken')) {
+    console.log('检测到用户已登录，正在从云端恢复数据...')
+    try {
+      await syncFromCloud()
+      console.log('✓ 云端数据恢复完成')
+    } catch (error) {
+      console.error('✗ 云端数据恢复失败:', error)
     }
   }
 })
