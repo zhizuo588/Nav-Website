@@ -1069,17 +1069,6 @@ onMounted(async () => {
       }
     }
   }
-
-  // 如果用户已登录，从云端恢复最新数据（确保多设备数据一致）
-  if (localStorage.getItem('userToken')) {
-    console.log('检测到用户已登录，正在从云端恢复最新数据...')
-    try {
-      await syncFromCloud()
-      console.log('✓ 云端数据恢复完成')
-    } catch (error) {
-      console.error('✗ 云端数据恢复失败:', error)
-    }
-  }
 })
 
 // 记录点击
