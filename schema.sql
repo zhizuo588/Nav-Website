@@ -1,4 +1,14 @@
 -- 导航网站 D1 数据库 Schema
+
+-- 创建用户表
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT NOT NULL UNIQUE,  -- 用户名（唯一）
+  password_hash TEXT NOT NULL,    -- 密码哈希
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 -- 创建网站表
 CREATE TABLE IF NOT EXISTS websites (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -14,6 +24,7 @@ CREATE TABLE IF NOT EXISTS websites (
 );
 
 -- 创建索引以提高查询性能
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_category ON websites(category);
 CREATE INDEX IF NOT EXISTS idx_name ON websites(name);
 CREATE INDEX IF NOT EXISTS idx_url ON websites(url);
