@@ -785,8 +785,25 @@ const showAdminPassword = ref(false)
 const adminPasswordInputRef = ref(null)
 let adminAuthResolve = null
 
+// 管理员密码缓存
+const cachedAdminPassword = ref(null)
+const adminPasswordExpiry = ref(0)
+const PASSWORD_CACHE_DURATION = 30 * 60 * 1000 // 30 分钟
+
+// 清除密码缓存
+const clearAdminPasswordCache = () => {
+  cachedAdminPassword.value = null
+  adminPasswordExpiry.value = 0
+}
+
 // 请求管理员密码
 const requestAdminPassword = () => {
+  // 1. 检查是否有有效缓存
+  if (cachedAdminPassword.value && Date.now() < adminPasswordExpiry.value) {
+    return Promise.resolve(cachedAdminPassword.value)
+  }
+
+  // 2. 无缓存，显示弹窗
   return new Promise((resolve) => {
     adminAuthPassword.value = ''
     showAdminPassword.value = false
@@ -803,6 +820,10 @@ const requestAdminPassword = () => {
 // 确认管理员认证
 const confirmAdminAuth = () => {
   if (adminAuthResolve) {
+    // 更新缓存
+    cachedAdminPassword.value = adminAuthPassword.value
+    adminPasswordExpiry.value = Date.now() + PASSWORD_CACHE_DURATION
+    
     adminAuthResolve(adminAuthPassword.value)
     adminAuthResolve = null
   }
@@ -906,6 +927,7 @@ const handleFileUpload = async (event) => {
       editForm.value.iconUrl = result.url
       alert('上传成功！')
     } else {
+      if (response.status === 401) clearAdminPasswordCache()
       alert('上传失败：' + (result.error || result.message))
     }
   } catch (error) {
@@ -971,6 +993,7 @@ const editCategory = async (oldName) => {
       // 重新加载数据
       location.reload()
     } else {
+      if (response.status === 401) clearAdminPasswordCache()
       alert('重命名失败：' + (result.error || result.message))
     }
   } catch (error) {
@@ -1006,6 +1029,7 @@ const deleteCategory = async (categoryName) => {
       // 重新加载数据
       location.reload()
     } else {
+      if (response.status === 401) clearAdminPasswordCache()
       alert('删除失败：' + (result.error || result.message))
     }
   } catch (error) {
@@ -1041,6 +1065,7 @@ const createNewCategory = async () => {
       // 重新加载数据
       location.reload()
     } else {
+      if (response.status === 401) clearAdminPasswordCache()
       alert('创建失败：' + (result.error || result.message))
     }
   } catch (error) {
@@ -1596,6 +1621,7 @@ const saveEdit = async () => {
       // 重新加载数据
       navItems.value = await fetchNavItems()
     } else {
+      if (response.status === 401) clearAdminPasswordCache()
       alert('保存失败：' + (result.error || result.message))
     }
   } catch (error) {
@@ -1630,6 +1656,7 @@ const deleteWebsite = async (item) => {
       // 重新加载数据
       navItems.value = await fetchNavItems()
     } else {
+      if (response.status === 401) clearAdminPasswordCache()
       alert('删除失败：' + (result.error || result.message))
     }
   } catch (error) {
@@ -1670,6 +1697,7 @@ const moveWebsiteToCategory = async (item, targetCategory) => {
       // 重新加载数据
       navItems.value = await fetchNavItems()
     } else {
+      if (response.status === 401) clearAdminPasswordCache()
       alert('移动失败：' + (result.error || result.message))
     }
   } catch (error) {
