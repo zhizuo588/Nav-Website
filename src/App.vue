@@ -2019,7 +2019,11 @@ const syncToCloud = async () => {
 const syncFromCloud = async () => {
   isSyncing.value = true
   try {
-    const response = await fetch(`${API_BASE}/api/sync/read?userId=${syncAuthToken.value}`)
+    const response = await fetch(`${API_BASE}/api/sync/read`, {
+      headers: {
+        'Authorization': `Bearer ${syncAuthToken.value}`
+      }
+    })
     const data = await response.json()
 
     console.log('📥 从云端读取的数据:', data)
