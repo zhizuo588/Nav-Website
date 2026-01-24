@@ -307,31 +307,45 @@
           </div>
 
           <div class="grid grid-cols-3 sm:grid-cols-4 gap-1">
-            <a
-              v-for="(link, index) in friendLinks"
-              :key="index"
-              :href="link.url"
-              target="_blank"
-              class="group relative flex flex-col items-center py-1 px-0.5 rounded-xl bg-gray-700/30 hover:bg-purple-600/20 border border-white/5 hover:border-purple-400/40 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20 hover:-translate-y-1 overflow-hidden"
+            <div
+              v-for="(link, index) in friendLinksList"
+              :key="link.id || index"
+              class="relative"
+              @contextmenu.prevent="handleFriendLinkContextMenu($event, link)"
             >
-              <!-- 悬停背景光效 -->
-              <div class="absolute inset-0 bg-gradient-to-br from-purple-600/0 to-pink-600/0 group-hover:from-purple-600/10 group-hover:to-pink-600/10 transition-all duration-500"></div>
+              <a
+                :href="link.url"
+                target="_blank"
+                class="group relative flex flex-col items-center py-1 px-0.5 rounded-xl bg-gray-700/30 hover:bg-purple-600/20 border border-white/5 hover:border-purple-400/40 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20 hover:-translate-y-1 overflow-hidden"
+              >
+                <!-- 悬停背景光效 -->
+                <div class="absolute inset-0 bg-gradient-to-br from-purple-600/0 to-pink-600/0 group-hover:from-purple-600/10 group-hover:to-pink-600/10 transition-all duration-500"></div>
 
-              <!-- 图标容器 -->
-              <div class="relative mb-1">
-                <div class="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div class="relative flex h-10 w-10 items-center justify-center transition-transform duration-300 group-hover:scale-110">
-                  <img
-                    :src="getIconSrc(link)"
-                    @error="handleImageError"
-                    class="h-full w-full object-contain rounded-xl drop-shadow-md"
-                  />
+                <!-- 图标容器 -->
+                <div class="relative mb-1">
+                  <div class="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div class="relative flex h-10 w-10 items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                    <img
+                      :src="link.icon || getIconSrc({ url: link.url })"
+                      @error="handleImageError"
+                      class="h-full w-full object-contain rounded-xl drop-shadow-md"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <span class="relative z-10 text-[10px] font-medium text-gray-300 group-hover:text-white transition-colors truncate w-full text-center">{{ link.name }}</span>
-            </a>
+                <span class="relative z-10 text-[10px] font-medium text-gray-300 group-hover:text-white transition-colors truncate w-full text-center">{{ link.name }}</span>
+              </a>
+            </div>
           </div>
+
+          <!-- 友情链接右键菜单 -->
+          <ContextMenu
+            :visible="friendContextMenuVisible"
+            :x="friendContextMenuX"
+            :y="friendContextMenuY"
+            :items="friendContextMenuItems"
+            @close="closeFriendContextMenu"
+          />
         </div>
       </div>
     </div>
@@ -767,7 +781,7 @@
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import draggable from 'vuedraggable'
 // ✅ 引入搜索引擎和友情链接
-import { fetchNavItems, searchEngines, friendLinks } from './data'
+import { fetchNavItems, fetchFriendLinks, searchEngines } from './data'
 import NavCard from './components/NavCard.vue'
 import ThemeModal from './components/ThemeModal.vue'
 import ContextMenu from './components/ContextMenu.vue'
@@ -786,6 +800,7 @@ const SEARCH_DEBOUNCE_MS = 200
 const showEngineList = ref(false)
 const isNavSearchMode = ref(false)  // 是否处于导航搜索模式
 const showFriendModal = ref(false) // 控制友链弹窗
+const friendLinksList = ref([]) // 友情链接列表（响应式）
 const showPasswordModal = ref(false) // 控制密码弹窗
 const showSyncModal = ref(false) // 控制同步弹窗
 const showThemeModal = ref(false) // 控制主题弹窗
@@ -860,6 +875,12 @@ const contextMenuVisible = ref(false)
 const contextMenuX = ref(0)
 const contextMenuY = ref(0)
 const contextMenuItem = ref(null)
+
+// === 友情链接右键菜单状态 ===
+const friendContextMenuVisible = ref(false)
+const friendContextMenuX = ref(0)
+const friendContextMenuY = ref(0)
+const friendContextMenuItem = ref(null)
 
 // === 编辑表单状态 ===
 const editForm = ref({
@@ -1396,6 +1417,14 @@ onMounted(async () => {
     console.error('✗ 导航数据加载失败:', error)
   }
 
+  // 加载友情链接数据
+  try {
+    friendLinksList.value = await fetchFriendLinks()
+    console.log('✓ 友情链接加载完成:', friendLinksList.value.length, '个')
+  } catch (error) {
+    console.error('✗ 友情链接加载失败:', error)
+  }
+
   // 监听网页可见性变化（从其他标签页切回来时自动刷新数据）
   document.addEventListener('visibilitychange', async () => {
     if (document.visibilityState === 'visible') {
@@ -1558,6 +1587,7 @@ const cancelPassword = () => {
 const refreshNavData = async () => {
   try {
     navItems.value = await fetchNavItems()
+    friendLinksList.value = await fetchFriendLinks()
     console.log('✓ 数据已刷新')
   } catch (error) {
     console.error('✗ 刷新数据失败:', error)
@@ -1579,6 +1609,84 @@ const closeContextMenu = () => {
   contextMenuItem.value = null
 }
 
+// === 友情链接右键菜单处理 ===
+// 处理友情链接右键菜单事件
+const handleFriendLinkContextMenu = (event, link) => {
+  event.preventDefault()
+  friendContextMenuItem.value = link
+  friendContextMenuX.value = event.clientX
+  friendContextMenuY.value = event.clientY
+  friendContextMenuVisible.value = true
+}
+
+// 关闭友情链接右键菜单
+const closeFriendContextMenu = () => {
+  friendContextMenuVisible.value = false
+  friendContextMenuItem.value = null
+}
+
+// 获取友情链接右键菜单项
+const friendContextMenuItems = computed(() => {
+  if (!friendContextMenuItem.value) return []
+
+  return [
+    {
+      label: '编辑',
+      action: () => {
+        // 将友情链接转换为网站卡片格式
+        const item = {
+          id: friendContextMenuItem.value.id,
+          name: friendContextMenuItem.value.name,
+          url: friendContextMenuItem.value.url,
+          desc: friendContextMenuItem.value.desc || '',
+          iconUrl: friendContextMenuItem.value.icon || '',
+          lanUrl: '',
+          darkIcon: false,
+          category: '友情链接'
+        }
+        openEditModal(item)
+        closeFriendContextMenu()
+      }
+    },
+    {
+      label: '删除',
+      action: async () => {
+        const confirmed = confirm(`确定要删除「${friendContextMenuItem.value.name}」吗？`)
+        if (!confirmed) return
+
+        const adminPassword = await requestAdminPassword()
+        if (!adminPassword) return
+
+        try {
+          const response = await fetch('/api/websites/delete', {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${adminPassword}`
+            },
+            body: JSON.stringify({ id: friendContextMenuItem.value.id })
+          })
+
+          const result = await response.json()
+
+          if (response.ok && result.success) {
+            alert(result.message || '删除成功')
+            // 重新加载友情链接
+            friendLinksList.value = await fetchFriendLinks()
+          } else {
+            if (response.status === 401) clearAdminPasswordCache()
+            alert('删除失败：' + (result.error || result.message))
+          }
+        } catch (error) {
+          alert('删除失败：' + error.message)
+        }
+
+        closeFriendContextMenu()
+      }
+    }
+  ]
+})
+
 // 获取右键菜单项
 const contextMenuItems = computed(() => {
   if (!contextMenuItem.value) return []
@@ -1590,6 +1698,18 @@ const contextMenuItems = computed(() => {
       label: cat.category,
       action: () => moveWebsiteToCategory(contextMenuItem.value, cat.category)
     }))
+
+  // 如果当前不是友情链接，添加"友情链接"选项到移动子菜单顶部
+  if (contextMenuItem.value.category !== '友情链接') {
+    moveSubmenu.unshift({
+      label: '友情链接 ⭐',
+      action: async () => {
+        await moveWebsiteToCategory(contextMenuItem.value, '友情链接')
+        // 刷新友情链接列表
+        friendLinksList.value = await fetchFriendLinks()
+      }
+    })
+  }
 
   return [
     {
