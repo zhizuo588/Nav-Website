@@ -30,41 +30,77 @@ export async function onRequest(context) {
 
   try {
     let imported = 0
-    let failed = 0
     const errors = []
 
-    // 批量插入
+    const normalized = []
+    const seenUrls = new Set()
+
     for (const website of data.websites) {
-      try {
-        // 验证必填字段
-        if (!website.name || !website.url || !website.category) {
-          errors.push({
-            name: website.name || 'Unknown',
-            error: '缺少必填字段 (name, url, category)'
-          })
-          failed++
-          continue
-        }
+      const name = (website.name || '').trim()
+      const url = (website.url || '').trim()
+      const category = (website.category || '').trim()
 
-        // 检查是否已存在
-        const existing = await env.DB.prepare('SELECT id FROM websites WHERE url = ?')
-          .bind(website.url)
-          .first()
+      if (!name || !url || !category) {
+        errors.push({
+          name: website.name || 'Unknown',
+          error: '缺少必填字段 (name, url, category)'
+        })
+        continue
+      }
 
-        if (existing) {
-          errors.push({
-            name: website.name,
-            error: '网址已存在'
-          })
-          failed++
-          continue
-        }
+      if (seenUrls.has(url)) {
+        errors.push({
+          name,
+          error: '网址重复（导入列表内）'
+        })
+        continue
+      }
 
-        // 插入数据
-        await env.DB.prepare(`
-          INSERT INTO websites (name, url, category, desc, icon_url, lan_url, dark_icon)
-          VALUES (?, ?, ?, ?, ?, ?, ?)
-        `).bind(
+      seenUrls.add(url)
+      normalized.push({
+        ...website,
+        name,
+        url,
+        category
+      })
+    }
+
+    const existingUrls = new Set()
+    const urlList = normalized.map(item => item.url)
+    const checkChunkSize = 100
+
+    for (let i = 0; i < urlList.length; i += checkChunkSize) {
+      const chunk = urlList.slice(i, i + checkChunkSize)
+      const placeholders = chunk.map(() => '?').join(',')
+      const result = await env.DB.prepare(
+        `SELECT url FROM websites WHERE url IN (${placeholders})`
+      ).bind(...chunk).all()
+      const rows = result.results || []
+      rows.forEach(row => existingUrls.add(row.url))
+    }
+
+    const toInsert = []
+    for (const website of normalized) {
+      if (existingUrls.has(website.url)) {
+        errors.push({
+          name: website.name,
+          error: '网址已存在'
+        })
+        continue
+      }
+      toInsert.push(website)
+    }
+
+    if (toInsert.length > 0) {
+      const insertStmt = env.DB.prepare(`
+        INSERT INTO websites (name, url, category, desc, icon_url, lan_url, dark_icon)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `)
+      const batchSize = 50
+
+      for (let i = 0; i < toInsert.length; i += batchSize) {
+        const batch = toInsert.slice(i, i + batchSize)
+        const statements = batch.map(website => insertStmt.bind(
           website.name,
           website.url,
           website.category,
@@ -72,19 +108,36 @@ export async function onRequest(context) {
           website.iconUrl || '',
           website.lanUrl || '',
           website.darkIcon ? 1 : 0
-        ).run()
+        ))
 
-        imported++
-
-      } catch (error) {
-        errors.push({
-          name: website.name || 'Unknown',
-          error: error.message
-        })
-        failed++
+        try {
+          await env.DB.batch(statements)
+          imported += batch.length
+        } catch (error) {
+          for (const website of batch) {
+            try {
+              await insertStmt.bind(
+                website.name,
+                website.url,
+                website.category,
+                website.desc || '',
+                website.iconUrl || '',
+                website.lanUrl || '',
+                website.darkIcon ? 1 : 0
+              ).run()
+              imported++
+            } catch (err) {
+              errors.push({
+                name: website.name || 'Unknown',
+                error: err.message
+              })
+            }
+          }
+        }
       }
     }
 
+    const failed = errors.length
     return jsonResponse({
       success: true,
       imported,

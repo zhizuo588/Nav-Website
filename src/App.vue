@@ -768,6 +768,8 @@ const { settings: themeSettings } = useTheme()
 const navItems = ref([])  // 改为响应式数组
 const activeCategory = ref('frequent')
 const searchQuery = ref('')
+const debouncedQuery = ref(searchQuery.value)
+const SEARCH_DEBOUNCE_MS = 200
 const showEngineList = ref(false)
 const isNavSearchMode = ref(false)  // 是否处于导航搜索模式
 const showFriendModal = ref(false) // 控制友链弹窗
@@ -777,6 +779,7 @@ const showThemeModal = ref(false) // 控制主题弹窗
 const showEditModal = ref(false) // 控制编辑弹窗
 const showBookmarkImport = ref(false) // 控制书签导入弹窗
 const passwordInput = ref('') // 密码输入
+let searchDebounceTimer = null
 
 // === 管理员认证弹窗状态 ===
 const showAdminAuthModal = ref(false)
@@ -865,6 +868,10 @@ const API_BASE = import.meta.env.VITE_SYNC_API || '' // 使用相对路径，指
 const syncAuthToken = ref(localStorage.getItem('syncAuthToken') || generateDeviceId())
 const isSyncing = ref(false)
 const syncStatus = ref(null)
+const SYNC_DEBOUNCE_MS = 1200
+let syncTimer = null
+let syncDirty = false
+let syncPending = false
 
 // === 用户登录状态 ===
 const isLoggedIn = ref(!!localStorage.getItem('userToken'))  // 是否已登录
@@ -947,7 +954,7 @@ const toggleCategoryEditMode = () => {
     // 退出编辑模式时保存顺序
     saveCategoryOrder()
     // 自动触发云同步（从 localStorage 读取最新值）
-    syncToCloud()
+    scheduleSync()
   }
 }
 
@@ -1233,11 +1240,11 @@ const onCategoryDrop = (event, targetIndex) => {
 const toggleDragMode = () => {
   isDragModeActive.value = !isDragModeActive.value
   if (!isDragModeActive.value) {
-    // 完成拖拽，自动云同步
+    // 完成拖拽，立即同步到云端（跳过 debounce）
     syncToCloud()
     // 显示保存提示
-    syncStatus.value = { type: 'success', message: '✅ 拖拽排序已保存并同步' }
-    setTimeout(() => syncStatus.value = null, 2000)
+    syncStatus.value = { type: 'success', message: '✅ 拖拽排序已保存到云端' }
+    setTimeout(() => syncStatus.value = null, 3000)
   }
 }
 
@@ -1495,7 +1502,7 @@ const toggleFavorite = (item) => {
   // 保存到 localStorage
   localStorage.setItem('navFavorites', JSON.stringify([...favorites.value]))
   // 自动云同步
-  syncToCloud()
+  scheduleSync()
 }
 
 // === 密码验证逻辑 ===
@@ -1756,8 +1763,40 @@ const cancelEditId = () => {
   isEditingId.value = false
 }
 
+// 同步调度（合并多次变更）
+const scheduleSync = () => {
+  syncDirty = true
+  if (syncTimer) {
+    clearTimeout(syncTimer)
+  }
+  syncTimer = setTimeout(() => {
+    syncTimer = null
+    flushSync()
+  }, SYNC_DEBOUNCE_MS)
+}
+
+const flushSync = async () => {
+  if (!syncDirty) return
+  if (isSyncing.value) {
+    syncPending = true
+    return
+  }
+  syncDirty = false
+  await syncToCloud()
+}
+
 // 上传到云端
 const syncToCloud = async () => {
+  if (isSyncing.value) {
+    syncPending = true
+    return
+  }
+  if (syncTimer) {
+    clearTimeout(syncTimer)
+    syncTimer = null
+  }
+  syncDirty = false
+  syncPending = false
   isSyncing.value = true
   try {
     // 从 localStorage 读取最新的分类顺序（确保是最新值）
@@ -1802,6 +1841,10 @@ const syncToCloud = async () => {
     syncStatus.value = { type: 'error', message: '❌ 网络错误: ' + error.message }
   } finally {
     isSyncing.value = false
+    if (syncPending || syncDirty) {
+      syncPending = false
+      scheduleSync()
+    }
   }
 }
 
@@ -1876,7 +1919,7 @@ const onDragEnd = (evt, categoryKey) => {
   // 这比使用 oldIndex/newIndex 手动更新更可靠
   customOrder.value[categoryKey] = draggablesList.value.map(item => item.id || item.url)
 
-  // 保存到 localStorage
+  // 保存到 localStorage（暂不同步到云端，等点击"完成拖拽"按钮时再同步）
   localStorage.setItem('navCustomOrder', JSON.stringify(customOrder.value))
 }
 
@@ -2006,8 +2049,8 @@ const filteredItems = computed(() => {
   }
 
   // 搜索过滤
-  if (searchQuery.value.trim()) {
-    const query = searchQuery.value.toLowerCase()
+  if (debouncedQuery.value.trim()) {
+    const query = debouncedQuery.value.toLowerCase()
     items = items.filter(item =>
       item.name.toLowerCase().includes(query) ||
       (item.desc && item.desc.toLowerCase().includes(query))
@@ -2022,15 +2065,24 @@ const enableDrag = computed(() => {
   return activeCategory.value !== 'frequent' && activeCategory.value !== 'nav-search'
 })
 
-// 监听 activeCategory 变化，更新拖拽数组
-watch(activeCategory, () => {
+// 监听搜索查询变化，更新防抖后的搜索词
+watch(searchQuery, (value) => {
+  if (searchDebounceTimer) {
+    clearTimeout(searchDebounceTimer)
+  }
+  if (!value) {
+    debouncedQuery.value = ''
+    return
+  }
+  searchDebounceTimer = setTimeout(() => {
+    debouncedQuery.value = value
+  }, SEARCH_DEBOUNCE_MS)
+})
+
+// 监听过滤结果变化，更新拖拽数组
+watch(filteredItems, () => {
   draggablesList.value = [...filteredItems.value]
 }, { immediate: true })
-
-// 监听搜索查询变化，更新拖拽数组
-watch(searchQuery, () => {
-  draggablesList.value = [...filteredItems.value]
-})
 </script>
 
 <style>

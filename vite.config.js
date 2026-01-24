@@ -21,6 +21,7 @@ export default defineConfig({
           }
 
           if (req.method === 'POST' && req.url.includes('/save')) {
+            res.statusCode = 200
             res.end(JSON.stringify({
               success: true,
               timestamp: Date.now()
@@ -30,11 +31,13 @@ export default defineConfig({
           }
 
           if (req.method === 'GET' && req.url.includes('/read')) {
+            res.statusCode = 200
             res.end(JSON.stringify({
               favorites: [],
               order: {},
               visits: {},
               clicks: {},
+              categoryOrder: [],
               timestamp: null
             }))
             return
@@ -59,6 +62,7 @@ export default defineConfig({
           // 读取网站数据
           if (req.method === 'GET' && req.url.includes('/read')) {
             // 开发模式返回静态数据
+            res.statusCode = 200
             res.end(JSON.stringify({ navItems }))
             console.log('📖 返回网站数据:', navItems.length, '个分类')
             return
@@ -68,6 +72,7 @@ export default defineConfig({
           if (req.method === 'POST' && req.url.includes('/add')) {
             // 模拟添加成功
             const newId = Math.floor(Math.random() * 10000)
+            res.statusCode = 200
             res.end(JSON.stringify({
               success: true,
               id: newId,
@@ -96,6 +101,7 @@ export default defineConfig({
           // 密码验证（开发模式）
           if (req.method === 'POST' && req.url.includes('/verify')) {
             // 开发模式：任意密码都可以通过
+            res.statusCode = 200
             res.end(JSON.stringify({ success: true }))
             console.log('🔓 开发模式：密码验证通过')
             return
@@ -119,6 +125,7 @@ export default defineConfig({
 
           // 数据迁移（开发模式）
           if (req.method === 'POST') {
+            res.statusCode = 200
             res.end(JSON.stringify({
               success: true,
               message: '开发模式：数据迁移未执行（请部署到 Cloudflare 后执行）',
