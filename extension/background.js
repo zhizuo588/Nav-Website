@@ -76,6 +76,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     quickSave(request.url, request.title, sender.tab)
     return true
   }
+  if (request.action === 'customSave') {
+    customSave(request.url, request.title, request.iconUrl, sender.tab)
+    return true
+  }
   return false
 })
 
@@ -104,8 +108,8 @@ async function quickSave(url, title, tab) {
       return
     }
 
-    // 提取图标
-    const iconUrl = 'https://www.google.com/s2/favicons?domain=' + new URL(url).hostname + '&sz=128'
+    // 提取图标 - 使用 unavatar.io（替代 Google favicon，在无法访问 Google 的地方也能用）
+    const iconUrl = 'https://unavatar.io/' + new URL(url).hostname
 
     // 构造收藏数据
     const favorite = {
@@ -140,6 +144,71 @@ async function quickSave(url, title, tab) {
   }
 }
 
+// 自定义图标收藏
+async function customSave(url, title, customIconUrl, tab) {
+  try {
+    // 检查是否已登录
+    const { userToken, currentUser, apiUrl, defaultCategory } = await chrome.storage.local.get([
+      'userToken',
+      'currentUser',
+      'apiUrl',
+      'defaultCategory'
+    ])
+
+    if (!userToken || !currentUser) {
+      showNotification('请先登录', '请在扩展设置中登录账号', () => {
+        chrome.runtime.openOptionsPage()
+      })
+      return
+    }
+
+    if (!apiUrl) {
+      showNotification('请先配置 API 地址', '请在扩展设置中配置 API 地址', () => {
+        chrome.runtime.openOptionsPage()
+      })
+      return
+    }
+
+    // 使用自定义图标或自动获取
+    let iconUrl = customIconUrl
+    if (!iconUrl) {
+      // 自动获取图标 - 使用 unavatar.io
+      iconUrl = 'https://unavatar.io/' + new URL(url).hostname
+    }
+
+    // 构造收藏数据
+    const favorite = {
+      name: title || new URL(url).hostname,
+      url: url,
+      desc: '',
+      iconUrl: iconUrl,
+      category: defaultCategory || '私密'
+    }
+
+    // 调用添加网站 API
+    const response = await fetch(apiUrl + '/api/websites/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + userToken
+      },
+      body: JSON.stringify(favorite)
+    })
+
+    const result = await response.json()
+
+    if (response.ok && result.success) {
+      showNotification('收藏成功', '"' + favorite.name + '" 已添加到导航')
+    } else {
+      throw new Error(result.error || '收藏失败')
+    }
+
+  } catch (error) {
+    console.error('自定义收藏失败:', error)
+    showNotification('收藏失败', error.message)
+  }
+}
+
 // 保存到指定分类
 async function saveToCategory(url, title, category, tab) {
   try {
@@ -164,8 +233,8 @@ async function saveToCategory(url, title, category, tab) {
       return
     }
 
-    // 提取图标
-    const iconUrl = 'https://www.google.com/s2/favicons?domain=' + new URL(url).hostname + '&sz=128'
+    // 提取图标 - 使用 unavatar.io（替代 Google favicon，在无法访问 Google 的地方也能用）
+    const iconUrl = 'https://unavatar.io/' + new URL(url).hostname
 
     // 构造收藏数据
     const favorite = {

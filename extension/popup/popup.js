@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 检查登录状态
   await checkLoginStatus()
 
-  // 收藏当前页面
+  // 快速收藏（自动图标）
   document.getElementById('savePage').addEventListener('click', async () => {
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
@@ -23,6 +23,50 @@ document.addEventListener('DOMContentLoaded', async () => {
         url: tab.url,
         title: tab.title
       })
+
+      showStatus('收藏成功！', 'success')
+      setTimeout(() => window.close(), 1500)
+    } catch (error) {
+      showStatus('收藏失败: ' + error.message, 'error')
+    }
+  })
+
+  // 自定义收藏
+  document.getElementById('customSave').addEventListener('click', async () => {
+    const { userToken, currentUser } = await chrome.storage.local.get(['userToken', 'currentUser'])
+
+    if (!userToken || !currentUser) {
+      showStatus('请先登录账号', 'error')
+      setTimeout(() => chrome.runtime.openOptionsPage(), 1500)
+      return
+    }
+
+    // 显示自定义表单
+    document.getElementById('customSaveForm').classList.remove('hidden')
+  })
+
+  // 取消自定义收藏
+  document.getElementById('cancelCustomSave').addEventListener('click', () => {
+    document.getElementById('customSaveForm').classList.add('hidden')
+    document.getElementById('customIconUrl').value = ''
+  })
+
+  // 执行自定义收藏
+  document.getElementById('doCustomSave').addEventListener('click', async () => {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+      const customIconUrl = document.getElementById('customIconUrl').value.trim()
+
+      // 调用 background 的自定义收藏
+      chrome.runtime.sendMessage({
+        action: 'customSave',
+        url: tab.url,
+        title: tab.title,
+        iconUrl: customIconUrl
+      })
+
+      document.getElementById('customSaveForm').classList.add('hidden')
+      document.getElementById('customIconUrl').value = ''
 
       showStatus('收藏成功！', 'success')
       setTimeout(() => window.close(), 1500)

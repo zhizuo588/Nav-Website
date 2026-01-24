@@ -92,6 +92,14 @@ async function handleLogin() {
       body: JSON.stringify({ username, password })
     })
 
+    // 检查响应内容类型
+    const contentType = response.headers.get('content-type')
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await response.text()
+      showError(`API 地址配置错误或服务器未正确部署。响应: ${text.substring(0, 100)}`)
+      return
+    }
+
     const result = await response.json()
 
     if (response.ok && result.success) {
@@ -144,6 +152,14 @@ async function handleRegister() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
     })
+
+    // 检查响应内容类型
+    const contentType = response.headers.get('content-type')
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await response.text()
+      showError(`API 地址配置错误或服务器未正确部署。响应: ${text.substring(0, 100)}`)
+      return
+    }
 
     const result = await response.json()
 

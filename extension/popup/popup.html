@@ -14,7 +14,12 @@
     <div class="actions">
       <button id="savePage" class="btn-primary">
         <span class="icon">📌</span>
-        <span class="text">收藏当前页面</span>
+        <span class="text">快速收藏</span>
+      </button>
+
+      <button id="customSave" class="btn-secondary">
+        <span class="icon">🎨</span>
+        <span class="text">自定义收藏</span>
       </button>
 
       <button id="importBookmarks" class="btn-secondary">
@@ -26,6 +31,20 @@
         <span class="icon">⚙️</span>
         <span class="text">设置</span>
       </button>
+    </div>
+
+    <!-- 自定义收藏表单 -->
+    <div id="customSaveForm" class="custom-form hidden">
+      <h3>自定义图标收藏</h3>
+      <div class="form-group">
+        <label for="customIconUrl">图标 URL（可选）</label>
+        <input type="text" id="customIconUrl" placeholder="https://example.com/icon.png">
+        <small>留空则自动获取网站图标</small>
+      </div>
+      <div class="form-actions">
+        <button id="doCustomSave" class="btn-primary">保存</button>
+        <button id="cancelCustomSave" class="btn-secondary">取消</button>
+      </div>
     </div>
 
     <div class="status" id="status"></div>
