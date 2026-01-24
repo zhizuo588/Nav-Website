@@ -518,6 +518,13 @@
               </div>
             </div>
 
+            <!-- 同步说明 -->
+            <div class="mb-4 p-3 bg-blue-900/30 border border-blue-500/20 rounded-lg">
+              <p class="text-blue-300 text-sm text-center">
+                请选择数据同步方式：
+              </p>
+            </div>
+
             <!-- 同步按钮 -->
             <div class="space-y-3">
               <button
@@ -528,7 +535,10 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
-                {{ isSyncing ? '同步中...' : '上传到云端' }}
+                <div class="text-left">
+                  <div class="font-medium">{{ isSyncing ? '同步中...' : '上传到云端' }}</div>
+                  <div class="text-xs opacity-75">将本地数据覆盖云端数据</div>
+                </div>
               </button>
 
               <button
@@ -539,12 +549,15 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3-3m0 0l3 3m-3-3v12" />
                 </svg>
-                {{ isSyncing ? '下载中...' : '从云端恢复' }}
+                <div class="text-left">
+                  <div class="font-medium">{{ isSyncing ? '下载中...' : '从云端恢复' }}</div>
+                  <div class="text-xs opacity-75">用云端数据覆盖本地数据</div>
+                </div>
               </button>
             </div>
 
             <p class="mt-4 text-center text-gray-500 text-xs">
-              登录后数据会自动关联到您的账号
+              ⚠️ 两个操作会覆盖对方的数据，请谨慎选择
             </p>
           </div>
         </div>
@@ -1315,13 +1328,12 @@ const handleLogin = async () => {
       localStorage.setItem('syncAuthToken', result.token) // 用用户 token 替换设备 ID
       syncAuthToken.value = result.token
 
-      // 先上传当前本地数据到云端（使用新的用户 token）
-      console.log('📤 登录成功，正在上传本地数据到云端...')
-      await syncToCloud()
-      console.log('✓ 本地数据已上传到云端')
+      // 登录成功后打开云同步弹窗，让用户选择上传或下载
+      syncStatus.value = { type: 'info', message: `👋 欢迎回来，${result.username}！请选择同步方式` }
+      setTimeout(() => syncStatus.value = null, 3000)
 
-      syncStatus.value = { type: 'success', message: `✅ 欢迎回来，${result.username}！` }
-      setTimeout(() => syncStatus.value = null, 2000)
+      // 自动打开云同步模态框
+      showSyncModal.value = true
     } else {
       authError.value = result.error || '登录失败'
     }
