@@ -622,12 +622,32 @@
             <!-- 图标URL -->
             <div>
               <label class="block text-gray-400 text-sm mb-2">图标 URL（可选）</label>
-              <input
-                v-model="editForm.iconUrl"
-                type="text"
-                class="w-full px-4 py-3 bg-gray-900/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
-                placeholder="https://example.com/icon.png"
-              >
+              <div class="flex gap-2">
+                <input
+                  v-model="editForm.iconUrl"
+                  type="text"
+                  class="flex-1 px-4 py-3 bg-gray-900/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
+                  placeholder="https://example.com/icon.png"
+                >
+                <input
+                  type="file"
+                  ref="fileInput"
+                  class="hidden"
+                  accept="image/*"
+                  @change="handleFileUpload"
+                >
+                <button
+                  @click="$refs.fileInput.click()"
+                  :disabled="isUploading"
+                  class="px-4 py-2 bg-gray-700/50 hover:bg-gray-600 text-white rounded-xl transition-all border border-white/10 flex items-center justify-center min-w-[5rem]"
+                  title="上传本地图片"
+                >
+                  <span v-if="isUploading" class="text-xs">上传中...</span>
+                  <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                </button>
+              </div>
             </div>
 
             <!-- 暗黑图标 -->
@@ -750,6 +770,55 @@ const categoryOrder = ref([]) // 分类自定义顺序
 const draggingCategoryIndex = ref(-1) // 正在拖拽的分类索引
 const draggedCategoryName = ref('') // 正在拖拽的分类名称
 const tempCategoryOrder = ref([]) // 拖拽过程中的临时顺序
+
+const fileInput = ref(null)
+const isUploading = ref(false)
+
+// 处理文件上传
+const handleFileUpload = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  // 验证管理员密码（因为上传接口需要鉴权）
+  const adminPassword = prompt('请输入管理员密码以授权上传：')
+  if (!adminPassword) {
+    // 清空文件选择，以便下次能重新选择同一个文件
+    event.target.value = ''
+    return
+  }
+
+  isUploading.value = true
+
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await fetch('/api/upload/image', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${adminPassword}`
+      },
+      body: formData
+    })
+
+    const result = await response.json()
+
+    if (response.ok && result.success) {
+      // 上传成功，自动填入 URL
+      editForm.value.iconUrl = result.url
+      alert('上传成功！')
+    } else {
+      alert('上传失败：' + (result.error || result.message))
+    }
+  } catch (error) {
+    console.error('上传出错:', error)
+    alert('上传出错：' + error.message)
+  } finally {
+    isUploading.value = false
+    // 清空文件选择
+    event.target.value = ''
+  }
+}
 
 // 切换分类编辑模式
 const toggleCategoryEditMode = () => {
