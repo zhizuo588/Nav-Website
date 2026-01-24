@@ -990,8 +990,8 @@ const editCategory = async (oldName) => {
 
     if (response.ok && result.success) {
       alert(result.message)
-      // 重新加载数据
-      location.reload()
+      // 重新加载数据（局部刷新，保留密码缓存）
+      await refreshNavData()
     } else {
       if (response.status === 401) clearAdminPasswordCache()
       alert('重命名失败：' + (result.error || result.message))
@@ -1026,8 +1026,8 @@ const deleteCategory = async (categoryName) => {
 
     if (response.ok && result.success) {
       alert(result.message)
-      // 重新加载数据
-      location.reload()
+      // 重新加载数据（局部刷新，保留密码缓存）
+      await refreshNavData()
     } else {
       if (response.status === 401) clearAdminPasswordCache()
       alert('删除失败：' + (result.error || result.message))
@@ -1062,8 +1062,8 @@ const createNewCategory = async () => {
 
     if (response.ok && result.success) {
       alert(result.message)
-      // 重新加载数据
-      location.reload()
+      // 重新加载数据（局部刷新，保留密码缓存）
+      await refreshNavData()
     } else {
       if (response.status === 401) clearAdminPasswordCache()
       alert('创建失败：' + (result.error || result.message))
@@ -1619,7 +1619,7 @@ const saveEdit = async () => {
       alert(result.message || '保存成功')
       showEditModal.value = false
       // 重新加载数据
-      navItems.value = await fetchNavItems()
+      await refreshNavData()
     } else {
       if (response.status === 401) clearAdminPasswordCache()
       alert('保存失败：' + (result.error || result.message))
@@ -1654,7 +1654,7 @@ const deleteWebsite = async (item) => {
     if (response.ok && result.success) {
       alert(result.message || '删除成功')
       // 重新加载数据
-      navItems.value = await fetchNavItems()
+      await refreshNavData()
     } else {
       if (response.status === 401) clearAdminPasswordCache()
       alert('删除失败：' + (result.error || result.message))
@@ -1695,7 +1695,7 @@ const moveWebsiteToCategory = async (item, targetCategory) => {
       syncStatus.value = { type: 'success', message: `✅ 已移动到「${targetCategory}」` }
       setTimeout(() => syncStatus.value = null, 2000)
       // 重新加载数据
-      navItems.value = await fetchNavItems()
+      await refreshNavData()
     } else {
       if (response.status === 401) clearAdminPasswordCache()
       alert('移动失败：' + (result.error || result.message))
