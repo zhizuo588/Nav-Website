@@ -1,16 +1,28 @@
-// 用户登录 API
+/**
+ * 用户登录 API - 安全升级版
+ *
+ * 安全改进：
+ * 1. 支持 PBKDF2 和旧版 SHA-256 密码验证
+ * 2. 自动升级旧密码哈希（首次登录）
+ * 3. 创建安全随机会话令牌
+ * 4. 使用 sessions 表管理会话
+ */
+
+import {
+  verifyPassword,
+  hashPassword,
+  isOldHashFormat,
+  createSession,
+  jsonResponse,
+  corsOptionsResponse
+} from '../_middleware.js'
+
 export async function onRequest(context) {
   const { request, env } = context
 
   // CORS 预检
   if (request.method === 'OPTIONS') {
-    return new Response(null, {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
-      }
-    })
+    return corsOptionsResponse(['POST', 'OPTIONS'])
   }
 
   if (request.method !== 'POST') {
@@ -35,51 +47,55 @@ export async function onRequest(context) {
     }
 
     // 验证密码
-    const passwordHash = await hashPassword(password)
-    if (passwordHash !== user.password_hash) {
+    const passwordValid = await verifyPassword(password, user.password_hash)
+
+    if (!passwordValid) {
       return jsonResponse({ error: '用户名或密码错误' }, 401)
     }
 
-    // 使用固定的用户 ID 作为 token（确保同一用户每次登录得到相同的 token）
-    const token = `user_${user.id}`
+    // 检查是否需要升级密码哈希（旧格式）
+    let passwordUpgraded = false
+    if (isOldHashFormat(user.password_hash)) {
+      console.log(`⚠️  用户 ${username} 使用旧密码格式，正在升级...`)
+
+      // 生成新的 PBKDF2 哈希
+      const newHash = await hashPassword(password)
+
+      // 更新数据库
+      const upgradeResult = await env.DB.prepare(
+        'UPDATE users SET password_hash = ? WHERE id = ?'
+      ).bind(newHash, user.id).run()
+
+      if (upgradeResult.success) {
+        passwordUpgraded = true
+        console.log(`✓ 用户 ${username} 密码哈希已升级为 PBKDF2`)
+      } else {
+        console.error(`✗ 用户 ${username} 密码哈希升级失败`)
+      }
+    }
+
+    // 创建会话（30 天有效）
+    const token = await createSession(env, user.id, 30)
+
+    // 构建响应消息
+    let message = '登录成功'
+    if (passwordUpgraded) {
+      message += '（密码安全已升级）'
+    }
+
+    console.log(`✓ 用户 ${username} 登录成功`)
 
     return jsonResponse({
       success: true,
-      message: '登录成功',
+      message: message,
       token: token,
       userId: user.id,
-      username: user.username
+      username: user.username,
+      passwordUpgraded: passwordUpgraded
     })
 
   } catch (error) {
     console.error('登录错误:', error)
     return jsonResponse({ error: '登录失败: ' + error.message }, 500)
   }
-}
-
-// 简单的密码哈希函数（SHA-256）
-async function hashPassword(password) {
-  const encoder = new TextEncoder()
-  const data = encoder.encode(password)
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-  return hashHex
-}
-
-// 生成简单的 token（用户 ID + 时间戳的哈希）
-function generateToken(userId) {
-  const timestamp = Date.now()
-  const random = Math.random().toString(36).substring(2)
-  return `user_${userId}_${timestamp}_${random}`
-}
-
-function jsonResponse(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*'
-    }
-  })
 }

@@ -1,16 +1,25 @@
-// 用户注册 API
+/**
+ * 用户注册 API - 安全升级版
+ *
+ * 安全改进：
+ * 1. 使用 PBKDF2 密码哈希（100,000 次迭代）
+ * 2. 创建安全随机会话令牌
+ * 3. 使用 sessions 表管理会话
+ */
+
+import {
+  hashPassword,
+  createSession,
+  jsonResponse,
+  corsOptionsResponse
+} from '../_middleware.js'
+
 export async function onRequest(context) {
   const { request, env } = context
 
   // CORS 预检
   if (request.method === 'OPTIONS') {
-    return new Response(null, {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
-      }
-    })
+    return corsOptionsResponse(['POST', 'OPTIONS'])
   }
 
   if (request.method !== 'POST') {
@@ -42,52 +51,34 @@ export async function onRequest(context) {
       return jsonResponse({ error: '用户名已存在' }, 409)
     }
 
-    // 生成密码哈希（使用简单的 SHA-256，生产环境建议使用 bcrypt）
+    // 使用 PBKDF2 生成密码哈希
     const passwordHash = await hashPassword(password)
+    console.log(`✓ 用户注册：${username}（使用 PBKDF2 哈希）`)
 
     // 创建用户
     const result = await env.DB.prepare(
       'INSERT INTO users (username, password_hash) VALUES (?, ?)'
     ).bind(username, passwordHash).run()
 
-    if (result.success) {
-      const userId = result.meta.last_row_id
-      // 使用与登录相同的 token 格式
-      const token = `user_${userId}`
-
-      return jsonResponse({
-        success: true,
-        message: '注册成功',
-        token: token,
-        userId: userId,
-        username: username
-      })
-    } else {
+    if (!result.success) {
       return jsonResponse({ error: '注册失败' }, 500)
     }
+
+    const userId = result.meta.last_row_id
+
+    // 创建会话（30 天有效）
+    const token = await createSession(env, userId, 30)
+
+    return jsonResponse({
+      success: true,
+      message: '注册成功',
+      token: token,
+      userId: userId,
+      username: username
+    })
 
   } catch (error) {
     console.error('注册错误:', error)
     return jsonResponse({ error: '注册失败: ' + error.message }, 500)
   }
-}
-
-// 简单的密码哈希函数（SHA-256）
-async function hashPassword(password) {
-  const encoder = new TextEncoder()
-  const data = encoder.encode(password)
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-  return hashHex
-}
-
-function jsonResponse(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*'
-    }
-  })
 }

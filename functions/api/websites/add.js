@@ -1,20 +1,33 @@
-// 添加新网站到 D1 数据库
+/**
+ * 添加新网站到 D1 数据库（安全升级版）
+ *
+ * 安全改进：
+ * - 添加会话鉴权检查
+ */
+
+import {
+  authenticateRequest,
+  unauthorizedResponse,
+  jsonResponse,
+  corsOptionsResponse
+} from '../_middleware.js'
+
 export async function onRequest(context) {
   const { request, env } = context
 
   // CORS
   if (request.method === 'OPTIONS') {
-    return new Response(null, {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-      }
-    })
+    return corsOptionsResponse(['POST', 'OPTIONS'])
   }
 
   if (request.method !== 'POST') {
     return jsonResponse({ error: 'Method not allowed' }, 405)
+  }
+
+  // 鉴权检查
+  const user = await authenticateRequest(request, env)
+  if (!user) {
+    return unauthorizedResponse('您需要登录后才能添加网站')
   }
 
   // 验证数据
@@ -61,14 +74,4 @@ export async function onRequest(context) {
       message: error.message
     }, 500)
   }
-}
-
-function jsonResponse(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*'
-    }
-  })
 }
