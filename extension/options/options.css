@@ -109,6 +109,10 @@ button {
   background: #e5e7eb;
 }
 
+.hidden {
+  display: none !important;
+}
+
 .test-result {
   padding: 12px;
   border-radius: 6px;

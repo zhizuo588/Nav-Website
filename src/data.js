@@ -10,7 +10,7 @@ export async function fetchNavItems() {
     const apiPath = `${window.location.origin}/api/websites/read`
     console.log('正在加载导航数据:', apiPath)
 
-    const response = await fetch(apiPath)
+    const response = await fetch(apiPath, { cache: 'no-store' })
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
@@ -231,7 +231,7 @@ export async function fetchFriendLinks() {
   try {
     const apiPath = `${window.location.origin}/api/websites/read`
 
-    const response = await fetch(apiPath)
+    const response = await fetch(apiPath, { cache: 'no-store' })
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)

@@ -28,7 +28,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 保存设置
   document.getElementById('saveSettings').addEventListener('click', async () => {
     const defaultCategory = document.getElementById('defaultCategory').value
-    const apiUrl = document.getElementById('apiUrlUser').value.trim()
+    let apiUrl = document.getElementById('apiUrlUser').value.trim()
+
+    if (apiUrl.endsWith('/')) {
+      apiUrl = apiUrl.slice(0, -1)
+    }
     
     const updates = { defaultCategory }
     if (apiUrl) {
@@ -80,7 +84,11 @@ function switchAuthMode(mode) {
 async function handleLogin() {
   const username = document.getElementById('loginUsername').value.trim()
   const password = document.getElementById('loginPassword').value
-  const apiUrl = document.getElementById('apiUrl').value.trim()
+  let apiUrl = document.getElementById('apiUrl').value.trim()
+
+  if (apiUrl.endsWith('/')) {
+    apiUrl = apiUrl.slice(0, -1)
+  }
 
   if (!username || !password) {
     showError('请输入用户名和密码')
@@ -103,7 +111,8 @@ async function handleLogin() {
     const contentType = response.headers.get('content-type')
     if (!contentType || !contentType.includes('application/json')) {
       const text = await response.text()
-      showError(`API 地址配置错误或服务器未正确部署。响应: ${text.substring(0, 100)}`)
+      console.error('API 非 JSON 响应:', text)
+      showError(`API 请求异常: 状态码 ${response.status} (${response.statusText})。请检查 API 地址是否正确，或服务器是否正常部署。`)
       return
     }
 
@@ -131,7 +140,11 @@ async function handleLogin() {
 async function handleRegister() {
   const username = document.getElementById('registerUsername').value.trim()
   const password = document.getElementById('registerPassword').value
-  const apiUrl = document.getElementById('apiUrlRegister').value.trim()
+  let apiUrl = document.getElementById('apiUrlRegister').value.trim()
+
+  if (apiUrl.endsWith('/')) {
+    apiUrl = apiUrl.slice(0, -1)
+  }
 
   if (!username || !password) {
     showError('请输入用户名和密码')
@@ -164,7 +177,8 @@ async function handleRegister() {
     const contentType = response.headers.get('content-type')
     if (!contentType || !contentType.includes('application/json')) {
       const text = await response.text()
-      showError(`API 地址配置错误或服务器未正确部署。响应: ${text.substring(0, 100)}`)
+      console.error('API 非 JSON 响应:', text)
+      showError(`API 请求异常: 状态码 ${response.status} (${response.statusText})。请检查 API 地址是否正确，或服务器是否正常部署。`)
       return
     }
 

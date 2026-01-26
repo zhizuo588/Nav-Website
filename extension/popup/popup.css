@@ -98,6 +98,10 @@ button {
   font-weight: 500;
 }
 
+.hidden {
+  display: none !important;
+}
+
 /* 自定义表单 */
 .custom-form {
   margin-top: 16px;

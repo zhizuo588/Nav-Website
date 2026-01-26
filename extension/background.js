@@ -134,14 +134,36 @@ async function quickSave(url, title, tab) {
     const result = await response.json()
 
     if (response.ok && result.success) {
-      showNotification('收藏成功', '"' + favorite.name + '" 已添加到导航')
+      const msg = '"' + favorite.name + '" 已保存到「' + favorite.category + '」'
+      // 尝试在页面内显示提示
+      if (tab && tab.id) {
+        chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          func: showInPageToast,
+          args: [msg, 'success']
+        }).catch(() => {
+          // 如果注入失败（例如在 chrome:// 页面），回退到系统通知
+          showNotification('收藏成功', msg)
+        })
+      } else {
+        showNotification('收藏成功', msg)
+      }
     } else {
       throw new Error(result.error || '收藏失败')
     }
 
   } catch (error) {
     console.error('快速收藏失败:', error)
-    showNotification('收藏失败', error.message)
+    // 错误提示也尝试在页面显示
+    if (tab && tab.id) {
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: showInPageToast,
+        args: ['收藏失败: ' + error.message, 'error']
+      }).catch(() => showNotification('收藏失败', error.message))
+    } else {
+      showNotification('收藏失败', error.message)
+    }
   }
 }
 
@@ -199,14 +221,31 @@ async function customSave(url, title, customIconUrl, tab) {
     const result = await response.json()
 
     if (response.ok && result.success) {
-      showNotification('收藏成功', '"' + favorite.name + '" 已添加到导航')
+      const msg = '"' + favorite.name + '" 已保存到「' + favorite.category + '」'
+      if (tab && tab.id) {
+        chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          func: showInPageToast,
+          args: [msg, 'success']
+        }).catch(() => showNotification('收藏成功', msg))
+      } else {
+        showNotification('收藏成功', msg)
+      }
     } else {
       throw new Error(result.error || '收藏失败')
     }
 
   } catch (error) {
     console.error('自定义收藏失败:', error)
-    showNotification('收藏失败', error.message)
+    if (tab && tab.id) {
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: showInPageToast,
+        args: ['收藏失败: ' + error.message, 'error']
+      }).catch(() => showNotification('收藏失败', error.message))
+    } else {
+      showNotification('收藏失败', error.message)
+    }
   }
 }
 
@@ -259,15 +298,82 @@ async function saveToCategory(url, title, category, tab) {
     const result = await response.json()
 
     if (response.ok && result.success) {
-      showNotification('收藏成功', '"' + favorite.name + '" 已添加到「' + category + '」')
+      const msg = '"' + favorite.name + '" 已保存到「' + category + '」'
+      if (tab && tab.id) {
+        chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          func: showInPageToast,
+          args: [msg, 'success']
+        }).catch(() => showNotification('收藏成功', msg))
+      } else {
+        showNotification('收藏成功', msg)
+      }
     } else {
       throw new Error(result.error || '收藏失败')
     }
 
   } catch (error) {
     console.error('分类收藏失败:', error)
-    showNotification('收藏失败', error.message)
+    if (tab && tab.id) {
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: showInPageToast,
+        args: ['收藏失败: ' + error.message, 'error']
+      }).catch(() => showNotification('收藏失败', error.message))
+    } else {
+      showNotification('收藏失败', error.message)
+    }
   }
+}
+
+// 页面内提示函数（将被注入到页面执行）
+function showInPageToast(message, type) {
+  // 移除可能存在的旧提示
+  const existing = document.getElementById('nav-helper-toast')
+  if (existing) existing.remove()
+
+  const toast = document.createElement('div')
+  toast.id = 'nav-helper-toast'
+  toast.style.cssText = `
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: ${type === 'success' ? 'rgba(16, 185, 129, 0.95)' : 'rgba(239, 68, 68, 0.95)'};
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 2147483647;
+    transition: all 0.3s ease;
+    opacity: 0;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    backdrop-filter: blur(4px);
+  `
+  
+  const icon = type === 'success' ? '✓' : '✕'
+  toast.innerHTML = `<span style="font-size: 16px">${icon}</span> <span>${message}</span>`
+
+  document.body.appendChild(toast)
+
+  // 动画显示
+  requestAnimationFrame(() => {
+    toast.style.top = '40px'
+    toast.style.opacity = '1'
+  })
+
+  // 自动消失
+  setTimeout(() => {
+    toast.style.top = '20px'
+    toast.style.opacity = '0'
+    setTimeout(() => toast.remove(), 300)
+  }, 3000)
 }
 
 // 显示通知

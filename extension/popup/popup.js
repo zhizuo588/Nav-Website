@@ -93,6 +93,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('openSettings').addEventListener('click', () => {
     chrome.runtime.openOptionsPage()
   })
+
+  // 退出登录
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await chrome.storage.local.remove(['userToken', 'currentUser', 'apiUrl'])
+    showStatus('已退出登录', 'info')
+    await checkLoginStatus()
+  })
 })
 
 // 检查登录状态
@@ -100,11 +107,14 @@ async function checkLoginStatus() {
   const { userToken, currentUser } = await chrome.storage.local.get(['userToken', 'currentUser'])
 
   const statusEl = document.getElementById('status')
+  const userActions = document.getElementById('userActions')
 
   if (userToken && currentUser) {
     statusEl.innerHTML = '<span class="success">✓ ' + currentUser.username + '</span>'
+    userActions.classList.remove('hidden')
   } else {
     statusEl.innerHTML = '<span class="warning">⚠ 未登录</span>'
+    userActions.classList.add('hidden')
   }
 }
 
