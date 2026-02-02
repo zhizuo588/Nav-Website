@@ -61,7 +61,7 @@ const PRESET_COLORS = {
 const DEFAULT_SETTINGS = {
   mode: 'dark',
   primaryColor: 'minimal',
-  backgroundType: 'none',
+  backgroundType: 'default',
   bgImage: '',
   saturation: 100,
   glassEffect: 30,
