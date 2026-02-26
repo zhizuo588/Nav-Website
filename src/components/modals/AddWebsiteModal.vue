@@ -19,7 +19,26 @@
 
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">网站链接 *</label>
-        <input v-model="form.url" type="url" required class="glass-input" placeholder="例如：https://github.com">
+        <div class="relative">
+          <input v-model="form.url" @blur="autoFetchIcon" type="url" required class="glass-input pr-10" placeholder="例如：https://github.com">
+          <button 
+            v-if="form.url && !form.iconUrl" 
+            type="button" 
+            @click="autoFetchIcon"
+            class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-green-500 transition-colors"
+            title="自动获取图标"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </button>
+          <span v-if="iconFetching" class="absolute right-2 top-1/2 -translate-y-1/2">
+            <svg class="w-5 h-5 animate-spin text-green-500" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </span>
+        </div>
       </div>
 
       <div>
@@ -66,7 +85,10 @@
 
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">图标链接</label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            图标链接
+            <span v-if="form.iconUrl" class="text-green-500 text-xs ml-1">已自动获取</span>
+          </label>
           <input v-model="form.iconUrl" type="url" class="glass-input" placeholder="留空自动获取">
         </div>
 
@@ -98,6 +120,7 @@
 <script setup>
 import { reactive, ref, watch, onMounted, onUnmounted } from 'vue'
 import BaseModal from './BaseModal.vue'
+import { getIconUrl } from '../../utils/icon.js'
 
 const props = defineProps({
   show: Boolean,
@@ -123,6 +146,25 @@ const form = reactive({
 })
 
 const showCategoryDropdown = ref(false)
+const iconFetching = ref(false)
+
+// 自动获取图标
+const autoFetchIcon = async () => {
+  if (!form.url || form.iconUrl) return
+  
+  iconFetching.value = true
+  try {
+    // 使用已有的 getIconUrl 函数
+    const iconUrl = getIconUrl(form.url, '')
+    if (iconUrl) {
+      form.iconUrl = iconUrl
+    }
+  } catch (e) {
+    console.error('自动获取图标失败:', e)
+  } finally {
+    iconFetching.value = false
+  }
+}
 
 const selectCategory = (cat) => {
   form.category = cat

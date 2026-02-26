@@ -1,4 +1,16 @@
 // 批量导入网站
+
+// 自动获取图标 URL
+function getAutoIconUrl(url) {
+  if (!url) return ''
+  try {
+    const hostname = new URL(url.startsWith('http') ? url : 'https://' + url).hostname.replace(/^www\./, '')
+    return `https://${hostname}/favicon.ico`
+  } catch (e) {
+    return ''
+  }
+}
+// 批量导入网站
 export async function onRequest(context) {
   const { request, env } = context
 
@@ -105,7 +117,7 @@ export async function onRequest(context) {
           website.url,
           website.category,
           website.desc || '',
-          website.iconUrl || '',
+          website.iconUrl || getAutoIconUrl(website.url) || '',
           website.lanUrl || '',
           website.darkIcon ? 1 : 0
         ))
@@ -121,7 +133,7 @@ export async function onRequest(context) {
                 website.url,
                 website.category,
                 website.desc || '',
-                website.iconUrl || '',
+                website.iconUrl || getAutoIconUrl(website.url) || '',
                 website.lanUrl || '',
                 website.darkIcon ? 1 : 0
               ).run()

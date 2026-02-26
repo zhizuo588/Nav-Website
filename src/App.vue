@@ -17,6 +17,16 @@
         <TopBar
           :is-edit-mode="isCategoryEditModeActive"
           :sync-status="syncStatus"
+          :is-auto-filling="isAutoFilling"
+          @open-sync="showSyncModal = true"
+          @open-theme="showThemeModal = true"
+          @toggle-edit="toggleCategoryEditMode"
+          @open-import="showBookmarkImport = true"
+          @open-add-website="openAddWebsiteModal"
+          @auto-fill-icons="autoFillIcons"
+        />
+          :is-edit-mode="isCategoryEditModeActive"
+          :sync-status="syncStatus"
           @open-sync="showSyncModal = true"
           @open-theme="showThemeModal = true"
           @toggle-edit="toggleCategoryEditMode"
@@ -815,6 +825,42 @@ const API_BASE = import.meta.env.VITE_SYNC_API || '' // 使用相对路径，指
 const syncAuthToken = ref(localStorage.getItem('syncAuthToken') || generateDeviceId())
 const isSyncing = ref(false)
 const syncStatus = ref(null)
+const isAutoFilling = ref(false)
+
+// 自动匹配图标
+const autoFillIcons = async () => {
+  if (isAutoFilling.value) return
+  
+  if (!confirm('将为所有缺少图标的网站自动匹配图标，是否继续？')) {
+    return
+  }
+  
+  isAutoFilling.value = true
+  try {
+    const response = await fetch(`${API_BASE}/api/websites/autofill-icons`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    })
+    const result = await response.json()
+    
+    if (result.success) {
+      syncStatus.value = { type: 'success', message: result.message }
+      // 刷新数据
+      await refreshNavData()
+    } else {
+      syncStatus.value = { type: 'error', message: result.error || result.message }
+    }
+    
+    // 3秒后清除状态
+    setTimeout(() => {
+      syncStatus.value = null
+    }, 3000)
+  } catch (error) {
+    syncStatus.value = { type: 'error', message: '匹配图标失败: ' + error.message }
+  } finally {
+    isAutoFilling.value = false
+  }
+}
 const SYNC_DEBOUNCE_MS = 1200
 let syncTimer = null
 let syncDirty = false
