@@ -56,3 +56,47 @@ body {
 .chosen-card {
   cursor: grabbing !important;
 }
+@layer components {
+  /* 基础玻璃面板 */
+  .glass-panel {
+    @apply bg-white/90 dark:bg-gray-800/95 border border-gray-200 dark:border-white/10 shadow-xl backdrop-blur-md;
+  }
+  
+  /* 弹窗包装器 */
+  .glass-modal {
+    @apply relative bg-white/90 dark:bg-gray-800/95 border border-gray-200 dark:border-white/10 rounded-3xl shadow-2xl p-6 w-full transform transition-all backdrop-blur-md;
+  }
+  
+  /* 玻璃按钮 */
+  .glass-button {
+    @apply p-1.5 rounded-full transition-all duration-300 border backdrop-blur-md inline-flex items-center justify-center;
+  }
+  
+  /* 玻璃主按钮 (渐变) */
+  .glass-button-primary {
+    @apply glass-button bg-gradient-to-r from-primary to-primary-to/80 border-primary/50 text-white hover:shadow-lg hover:shadow-primary/30 hover:scale-110;
+  }
+  
+  /* 玻璃次按钮 (暗色) */
+  .glass-button-secondary {
+    @apply glass-button bg-white/10 border-white/20 text-gray-400 hover:bg-white/20 hover:text-white;
+  }
+
+  /* 输入框 */
+  .glass-input {
+    @apply w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all;
+  }
+
+  /* 通用动作按钮 (非圆形) */
+  .btn-action {
+    @apply flex-1 px-4 py-2.5 rounded-xl transition-all font-medium flex justify-center items-center gap-2;
+  }
+
+  .btn-action-primary {
+    @apply btn-action bg-gradient-to-r from-primary to-primary-to hover:from-primary/90 hover:to-primary-to/90 text-white shadow-lg shadow-primary/30 hover:shadow-primary/50 disabled:opacity-70 disabled:cursor-not-allowed;
+  }
+
+  .btn-action-cancel {
+    @apply btn-action bg-gray-100 dark:bg-gray-700/50 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300;
+  }
+}

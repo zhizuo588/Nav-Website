@@ -14,73 +14,15 @@
       
       <!-- 1. 顶部导航栏 -->
       <header class="w-full max-w-6xl mb-4 sm:mb-6 z-20 relative">
-        <div class="flex justify-between items-center mb-3 px-2">
-          <!-- 左侧按钮组 -->
-          <div class="flex gap-2">
-            <!-- 云同步按钮（仅图标） -->
-            <button
-              @click="showSyncModal = true"
-              class="p-1.5 rounded-full transition-all duration-300 border backdrop-blur-md inline-flex items-center justify-center bg-gradient-to-r from-primary to-primary-to/80 border-primary/50 text-white hover:shadow-lg hover:shadow-primary/30 hover:scale-110"
-              title="云同步"
-            >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
-            </button>
-
-            <!-- 主题设置按钮 -->
-            <button
-              @click="showThemeModal = true"
-              class="p-1.5 rounded-full transition-all duration-300 border backdrop-blur-md inline-flex items-center justify-center bg-gradient-to-r from-primary to-primary-to/80 border-primary/50 text-white hover:shadow-lg hover:shadow-primary/30 hover:scale-110"
-              title="主题设置"
-            >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-              </svg>
-            </button>
-
-            <!-- 编辑分类按钮 -->
-            <button
-              @click="toggleCategoryEditMode"
-              class="p-1.5 rounded-full transition-all duration-300 border backdrop-blur-md inline-flex items-center justify-center"
-              :class="isCategoryEditModeActive
-                ? 'bg-gradient-to-r from-primary to-primary-to/80 border-primary/50 text-white hover:shadow-lg hover:shadow-primary/30'
-                : 'bg-white/10 border-white/20 text-gray-400 hover:bg-white/20 hover:text-white'"
-              :title="isCategoryEditModeActive ? '完成编辑分类' : '编辑分类顺序'"
-            >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
-              </svg>
-            </button>
-
-            <!-- 导入书签按钮 -->
-            <button
-              @click="showBookmarkImport = true"
-              class="p-1.5 rounded-full transition-all duration-300 border backdrop-blur-md inline-flex items-center justify-center bg-gradient-to-r from-primary to-primary-to/80 border-primary/50 text-white hover:shadow-lg hover:shadow-primary/30 hover:scale-110"
-              title="导入书签"
-            >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-            </button>
-          </div>
-
-            <!-- 添加网站按钮 -->
-            <button
-              @click="openAddWebsiteModal"
-              class="p-1.5 rounded-full transition-all duration-300 border backdrop-blur-md inline-flex items-center justify-center bg-gradient-to-r from-green-500 to-emerald-500 border-green-400 text-white hover:shadow-lg hover:shadow-green-500/30 hover:scale-110"
-              title="添加网站"
-            >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-              </svg>
-            </button>
-
-          <!-- 同步状态指示器 -->
-          <div v-if="syncStatus" class="text-[10px] sm:text-xs" :class="syncStatus.type === 'success' ? 'text-green-400' : 'text-red-400'">
-            {{ syncStatus.message }}
-          </div>
-        </div>
+        <TopBar
+          :is-edit-mode="isCategoryEditModeActive"
+          :sync-status="syncStatus"
+          @open-sync="showSyncModal = true"
+          @open-theme="showThemeModal = true"
+          @toggle-edit="toggleCategoryEditMode"
+          @open-import="showBookmarkImport = true"
+          @open-add-website="openAddWebsiteModal"
+        />
 
         <nav class="flex justify-center px-1">
           <div class="flex flex-wrap justify-center gap-1 sm:gap-1.5 pb-1">
@@ -184,60 +126,16 @@
       </header>
 
       <!-- 2. 搜索框 -->
-      <div class="relative w-full max-w-2xl mx-auto mb-6 sm:mb-8 group z-50 px-2">
-        <div class="absolute -inset-0.5 bg-gradient-to-r from-primary to-primary-to rounded-xl sm:rounded-2xl opacity-30 blur transition duration-1000 group-hover:opacity-75 group-hover:duration-200"></div>
-        <div class="relative flex items-center bg-gray-900/80 backdrop-blur-xl border border-white/10 rounded-xl sm:rounded-2xl p-1.5 sm:p-2 transition-colors focus-within:bg-gray-800/90 focus-within:border-white/20">
-          <div class="relative">
-            <button
-              @click.stop="showEngineList = !showEngineList"
-              class="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg sm:rounded-xl transition-all"
-            >
-              <span class="font-bold text-primary text-xs sm:text-sm">{{ currentEngine.name }}</span>
-              <svg class="w-2.5 h-2.5 sm:w-3 sm:h-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-            </button>
-            <div v-if="showEngineList" class="absolute top-full left-0 mt-2 w-32 bg-gray-800 border border-white/10 rounded-xl shadow-xl overflow-hidden">
-              <div
-                v-for="(engine, index) in searchEngines"
-                :key="index"
-                @click="switchEngine(engine)"
-                class="px-3 sm:px-4 py-2 sm:py-3 cursor-pointer hover:bg-primary hover:text-white text-gray-400 text-xs sm:text-sm transition-colors"
-                :class="{'text-white bg-white/10': currentEngine.name === engine.name}"
-              >
-                {{ engine.name }}
-              </div>
-            </div>
-          </div>
-          <div class="relative flex-1">
-            <input
-              v-model="searchQuery"
-              @keypress.enter="handleSearch"
-              type="text"
-              :placeholder="`在 ${currentEngine.name} 中搜索...`"
-              class="w-full bg-transparent text-white placeholder-gray-500 px-2 sm:px-4 py-1.5 sm:py-2 focus:outline-none text-sm sm:text-base pr-8 sm:pr-10"
-              ref="searchInputRef"
-            />
-            <!-- 清除搜索按钮 -->
-            <button
-              v-if="searchQuery"
-              @click="clearSearch"
-              class="absolute right-1 sm:right-2 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-white transition-colors"
-              aria-label="清除搜索"
-              type="button"
-            >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <button
-            @click="handleSearch"
-            class="hidden sm:flex px-4 sm:px-6 py-1.5 sm:py-2 bg-primary hover:bg-primary/90 text-white rounded-xl transition-all font-medium items-center gap-2 shadow-lg shadow-primary/20 text-sm"
-          >
-            搜索
-          </button>
-        </div>
-      </div>
-      <div v-if="showEngineList" @click="showEngineList = false" class="fixed inset-0 z-40 bg-transparent cursor-default"></div>
+      <SearchPanel
+        v-model="searchQuery"
+        :current-engine="currentEngine"
+        :search-engines="searchEngines"
+        :show-engine-list="showEngineList"
+        @search="handleSearch"
+        @open-engine-list="showEngineList = true"
+        @close-engine-list="showEngineList = false"
+        @select-engine="switchEngine"
+      />
 
       <!-- 3. 内容网格 -->
       <div v-if="draggablesList.length > 0" class="w-full max-w-[64rem] grid grid-cols-4 md:grid-cols-7 xl:grid-cols-9 gap-1.5 px-1 sm:px-2 pb-8 mx-auto">
@@ -744,187 +642,21 @@
       @refresh="refreshNavData"
     />
 
-    <!-- 11. 管理员密码确认弹窗 -->
-    <div v-if="showAdminAuthModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4" @click.self="cancelAdminAuth">
-      <div class="absolute inset-0 bg-black/70 backdrop-blur-md"></div>
-      
-      <div class="relative bg-white/90 dark:bg-gray-800/95 border border-gray-200 dark:border-white/10 rounded-3xl shadow-2xl p-6 w-full max-w-sm transform transition-all">
-        <!-- 光效背景 -->
-        <div class="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary-to/5 rounded-3xl pointer-events-none"></div>
+    <PasswordModal
+      :show="showAdminAuthModal"
+      v-model="adminAuthPassword"
+      @close="cancelAdminAuth"
+      @confirm="confirmAdminAuth"
+    />
 
-        <div class="relative z-10">
-          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-            <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-            验证管理员身份
-          </h3>
-
-          <div class="mb-6 relative">
-            <input
-              v-model="adminAuthPassword"
-              :type="showAdminPassword ? 'text' : 'password'"
-              class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all pr-12"
-              placeholder="请输入管理员密码"
-              @keyup.enter="confirmAdminAuth"
-              ref="adminPasswordInputRef"
-            >
-            <button 
-              @click="showAdminPassword = !showAdminPassword"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors p-1"
-              type="button"
-            >
-              <svg v-if="showAdminPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-              </svg>
-              <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-            </button>
-          </div>
-
-          <div class="flex gap-3">
-            <button
-              @click="cancelAdminAuth"
-              class="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700/50 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-xl transition-colors"
-            >
-              取消
-            </button>
-            <button
-              @click="confirmAdminAuth"
-              class="flex-1 px-4 py-2 bg-gradient-to-r from-primary to-primary-to hover:from-primary/90 hover:to-primary-to/90 text-white rounded-xl transition-all shadow-lg shadow-primary/30 hover:shadow-primary/50 font-medium"
-            >
-              确认
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- 12. 添加网站弹窗 -->
-    <div v-if="showAddWebsiteModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="showAddWebsiteModal = false">
-      <div class="absolute inset-0 bg-black/70 backdrop-blur-md"></div>
-      
-      <div class="relative bg-white/90 dark:bg-gray-800/95 border border-gray-200 dark:border-white/10 rounded-3xl shadow-2xl p-6 w-full max-w-lg transform transition-all">
-        <!-- 光效背景 -->
-        <div class="absolute inset-0 bg-gradient-to-br from-green-500/5 via-transparent to-emerald-500/5 rounded-3xl pointer-events-none"></div>
-
-        <div class="relative z-10">
-          <div class="flex justify-between items-center mb-6">
-            <h3 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <span class="w-1 h-6 bg-gradient-to-b from-green-500 to-emerald-500 rounded-full shadow-lg shadow-green-500/50"></span>
-              添加网站到「{{ activeCategory === 'frequent' ? '常用' : (activeCategory === 'favorites' ? '收藏' : activeCategory) }}」
-            </h3>
-            <button @click="showAddWebsiteModal = false" class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-          </div>
-
-          <!-- 错误提示 -->
-          <div v-if="addWebsiteError" class="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 rounded-xl flex items-center gap-2 text-red-600 dark:text-red-400">
-            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span class="text-sm">{{ addWebsiteError }}</span>
-          </div>
-
-          <form @submit.prevent="submitAddWebsite" class="space-y-4">
-            <!-- 网站名称 -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">网站名称 *</label>
-              <input
-                v-model="addWebsiteForm.name"
-                type="text"
-                required
-                class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-all"
-                placeholder="例如：GitHub"
-              >
-            </div>
-
-            <!-- 网站链接 -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">网站链接 *</label>
-              <input
-                v-model="addWebsiteForm.url"
-                type="url"
-                required
-                class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-all"
-                placeholder="例如：https://github.com"
-              >
-            </div>
-
-            <!-- 网站描述 -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">网站描述</label>
-              <input
-                v-model="addWebsiteForm.desc"
-                type="text"
-                class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-all"
-                placeholder="简单的一句话介绍（可选）"
-              >
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-              <!-- 图标 URL -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">图标链接</label>
-                <input
-                  v-model="addWebsiteForm.iconUrl"
-                  type="url"
-                  class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-all"
-                  placeholder="留空自动获取"
-                >
-              </div>
-
-              <!-- 内网链接 -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">内网链接</label>
-                <input
-                  v-model="addWebsiteForm.lanUrl"
-                  type="url"
-                  class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-all"
-                  placeholder="（可选）"
-                >
-              </div>
-            </div>
-
-            <!-- 深色图标选项 -->
-            <div class="flex items-center gap-2 pt-1">
-              <input
-                v-model="addWebsiteForm.darkIcon"
-                type="checkbox"
-                id="addDarkIcon"
-                class="w-4 h-4 rounded border-gray-300 dark:border-white/10 bg-white dark:bg-gray-900/50 text-green-500 focus:ring-green-500/50"
-              >
-              <label for="addDarkIcon" class="text-sm text-gray-600 dark:text-gray-400 cursor-pointer">这是一个深色图标（需要反色显示）</label>
-            </div>
-
-            <!-- 按钮 -->
-            <div class="flex gap-3 pt-4">
-              <button
-                type="button"
-                @click="showAddWebsiteModal = false"
-                class="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700/50 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-xl transition-colors font-medium"
-              >
-                取消
-              </button>
-              <button
-                type="submit"
-                :disabled="addWebsiteLoading"
-                class="flex-1 px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-xl transition-all shadow-lg shadow-green-500/30 hover:shadow-green-500/50 font-medium disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2"
-              >
-                <svg v-if="addWebsiteLoading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>{{ addWebsiteLoading ? '添加中...' : '确认添加' }}</span>
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
+    <AddWebsiteModal
+      :show="showAddWebsiteModal"
+      :loading="addWebsiteLoading"
+      :error="addWebsiteError"
+      :initialCategory="activeCategory === 'frequent' || activeCategory === 'favorites' ? (navItems.length > 0 ? navItems[0].category : '') : activeCategory"
+      @close="showAddWebsiteModal = false"
+      @submit="submitAddWebsiteForm"
+    />
   </div>
 </template>
 
@@ -938,6 +670,10 @@ import ThemeModal from './components/ThemeModal.vue'
 import ContextMenu from './components/ContextMenu.vue'
 import BookmarkImport from './components/BookmarkImport.vue'
 import { useTheme } from './composables/useTheme'
+import TopBar from './components/TopBar.vue'
+import SearchPanel from './components/SearchPanel.vue'
+import PasswordModal from './components/modals/PasswordModal.vue'
+import AddWebsiteModal from './components/modals/AddWebsiteModal.vue'
 
 // 初始化主题系统
 const { settings: themeSettings } = useTheme()

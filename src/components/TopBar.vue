@@ -1,0 +1,84 @@
+<template>
+  <div class="flex justify-between items-center mb-3 px-2">
+    <!-- 左侧按钮组 -->
+    <div class="flex gap-2">
+      <!-- 云同步按钮（仅图标） -->
+      <button
+        @click="$emit('open-sync')"
+        class="glass-button-primary"
+        title="云同步"
+      >
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+        </svg>
+      </button>
+
+      <!-- 主题设置按钮 -->
+      <button
+        @click="$emit('open-theme')"
+        class="glass-button-primary"
+        title="主题设置"
+      >
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+        </svg>
+      </button>
+
+      <!-- 编辑分类按钮 -->
+      <button
+        @click="$emit('toggle-edit')"
+        class="glass-button"
+        :class="isEditMode
+          ? 'bg-gradient-to-r from-primary to-primary-to/80 border-primary/50 text-white hover:shadow-lg hover:shadow-primary/30'
+          : 'bg-white/10 border-white/20 text-gray-400 hover:bg-white/20 hover:text-white'"
+        :title="isEditMode ? '完成编辑分类' : '编辑分类顺序'"
+      >
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+        </svg>
+      </button>
+
+      <!-- 导入书签按钮 -->
+      <button
+        @click="$emit('open-import')"
+        class="glass-button-primary"
+        title="导入书签"
+      >
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        </svg>
+      </button>
+
+      <!-- 添加网站按钮 -->
+      <button
+        @click="$emit('open-add-website')"
+        class="p-1.5 rounded-full transition-all duration-300 border backdrop-blur-md inline-flex items-center justify-center bg-gradient-to-r from-green-500 to-emerald-500 border-green-400 text-white hover:shadow-lg hover:shadow-green-500/30 hover:scale-110"
+        title="添加网站"
+      >
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- 同步状态指示器 -->
+    <div v-if="syncStatus" class="text-[10px] sm:text-xs" :class="syncStatus.type === 'success' ? 'text-green-400' : 'text-red-400'">
+      {{ syncStatus.message }}
+    </div>
+  </div>
+</template>
+
+<script setup>
+defineProps({
+  isEditMode: {
+    type: Boolean,
+    default: false
+  },
+  syncStatus: {
+    type: Object,
+    default: null
+  }
+})
+
+defineEmits(['open-sync', 'open-theme', 'toggle-edit', 'open-import', 'open-add-website'])
+</script>
