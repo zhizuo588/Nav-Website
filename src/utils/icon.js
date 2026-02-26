@@ -5,6 +5,7 @@
 
 // dashboardicons 图标映射表（常用网站）
 const DASHBOARD_ICON_MAP = {
+  // 常用网站
   'github': 'github',
   'gitlab': 'gitlab',
   'bitbucket': 'bitbucket',
@@ -27,6 +28,8 @@ const DASHBOARD_ICON_MAP = {
   'bilibili': 'bilibili',
   'douyin': 'douyin',
   'juejin': 'juejin',
+  
+  // 云服务
   'cloudflare': 'cloudflare',
   'vercel': 'vercel',
   'heroku': 'heroku',
@@ -37,12 +40,19 @@ const DASHBOARD_ICON_MAP = {
   'google.com': 'google',
   'microsoft': 'microsoft',
   'apple': 'apple',
+  
+  // 开发工具
   'docker': 'docker',
   'kubernetes': 'kubernetes',
   'vuejs': 'vue-js',
   'reactjs': 'react',
   'nextjs': 'nextjs',
   'tailwindcss': 'tailwindcss',
+  'typescript': 'typescript',
+  'javascript': 'js',
+  'nodejs': 'nodejs',
+  
+  // AI 工具
   'deepseek': 'deepseek',
   'openai': 'openai',
   'anthropic': 'anthropic',
@@ -58,52 +68,78 @@ const DASHBOARD_ICON_MAP = {
   'copilot': 'microsoft-copilot',
   'cursor': 'cursor',
   'windsurf': 'windsurf',
+  'felo': 'felo',
+  
+  // 开发效率工具
   'linear': 'linear',
   'loom': 'loom',
   'cal.com': 'cal',
-  'notion': 'notion',
   'obsidian': 'obsidian',
   'raycast': 'raycast',
   'alfred': 'alfred',
   'popclip': 'popclip',
   'arc': 'arc',
+  
+  // 浏览器
   'brave': 'brave',
   'chrome': 'google-chrome',
   'firefox': 'firefox',
   'safari': 'safari',
   'edge': 'microsoft-edge',
+  
+  // 密码管理
   '1password': '1password',
   'bitwarden': 'bitwarden',
   'lastpass': 'lastpass',
   'dashlane': 'dashlane',
   'keepass': 'keepass',
+  
+  // 监控
   'sentry': 'sentry',
   'datadog': 'datadog',
   'newrelic': 'new-relic',
   'grafana': 'grafana',
   'prometheus': 'prometheus',
+  'uptimerobot': 'uptime-robot',
+  
+  // CI/CD
   'jenkins': 'jenkins',
-  'gitlab': 'gitlab-ci',
+  'gitlab-ci': 'gitlab-ci',
   'travis-ci': 'travis-ci',
   'circleci': 'circleci',
   'github-actions': 'github-actions',
+  
+  // 部署平台
   'railway': 'railway',
   'render': 'render',
   'flyio': 'fly',
+  'koyeb': 'koyeb',
+  'zeabur': 'zeabur',
+  'wispbyte': 'wisp',
+  'clever-cloud': 'clever-cloud',
+  'fly': 'fly',
+  
+  // 数据库
   'supabase': 'supabase',
   'planetscale': 'planetscale',
   'mongodb': 'mongodb',
   'redis': 'redis',
   'postgresql': 'postgresql',
   'mysql': 'mysql',
+  
+  // ORM
   'prisma': 'prisma',
   'drizzle': 'drizzle',
   'sequelize': 'sequelize',
   'typeorm': 'typeorm',
+  
+  // 服务器
   'nginx': 'nginx',
   'apache': 'apache',
   'caddy': 'caddy',
   'traefik': 'traefik',
+  
+  // 自托管
   'portainer': 'portainer',
   'uptime-kuma': 'uptime-kuma',
   'dozzle': 'dozzle',
@@ -112,11 +148,14 @@ const DASHBOARD_ICON_MAP = {
   'homarr': 'homarr',
   'adguard': 'adguard',
   'pi-hole': 'pi-hole',
-  'cloudflare': 'cloudflare-turnstile',
   'mailcow': 'mailcow',
   'stirling-pdf': 'stirling-pdf',
   'changedetection': 'changedetection',
+  
+  // 下载
   'qbittorrent': 'qbittorrent',
+  
+  // 媒体
   'immich': 'immich',
   'jellyfin': 'jellyfin',
   'plex': 'plex',
@@ -129,11 +168,16 @@ const DASHBOARD_ICON_MAP = {
   'tautulli': 'tautulli',
   'ombi': 'ombi',
   'jackett': 'jackett',
+  
+  // 文件管理
   'filebrowser': 'filebrowser',
   'it-tools': 'it-tools',
   'hivision': 'hivision-idphotos',
   'openlist': 'openlist',
   'linkwarden': 'linkwarden',
+  'alist': 'alist',
+  
+  // 自动化
   'n8n': 'n8n',
   'pipedream': 'pipedream',
   'zapier': 'zapier',
@@ -141,14 +185,39 @@ const DASHBOARD_ICON_MAP = {
   'integromat': 'integromat',
   'ifttt': 'ifttt',
   'nodered': 'node-red',
+  
+  // 智能家居
   'homeassistant': 'home-assistant',
   'iobroker': 'iobroker',
+  
+  // 网络
   'openwrt': 'openwrt',
   'tailscale': 'tailscale',
   'wireguard': 'wireguard',
   'zerotier': 'zerotier',
   'cloudflared': 'cloudflared',
-  'alist': 'alist',
+  
+  // 图标/字体
+  'fontawesome': 'font-awesome',
+  'fontawesome.com': 'font-awesome',
+  
+  // IP 查询
+  'ip.sb': 'ip',
+  'www.ghxi.com': 'ip',
+  'ip111.cn': 'ip',
+  'iplark.com': 'ip',
+  'ipjiance.com': 'ip',
+  'scamalytics.com': 'ip',
+  'ipdata.co': 'ip',
+  
+  // 域名
+  'gname.vip': 'domain',
+  'www.idc.lc': 'domain',
+  'domain.nodeloc.com': 'domain',
+  'nic.ua': 'domain',
+  'nic.zle.ee': 'domain',
+  'freedidi.com': 'domain',
+  'svgtopng.com': 'image',
 }
 
 /**
@@ -173,12 +242,21 @@ function findDashboardIcon(url) {
   const keyword = extractDomainKeyword(url).toLowerCase()
   if (!keyword) return null
 
-  // 精确匹配
+  // 1. 精确匹配完整域名
   if (DASHBOARD_ICON_MAP[keyword]) {
     return DASHBOARD_ICON_MAP[keyword]
   }
 
-  // 部分匹配
+  // 2. 精确匹配（去掉 com/net/org 等后缀）
+  const parts = keyword.split('.')
+  if (parts.length >= 2) {
+    const mainPart = parts[0] // 如 github, huggingface 等
+    if (DASHBOARD_ICON_MAP[mainPart]) {
+      return DASHBOARD_ICON_MAP[mainPart]
+    }
+  }
+
+  // 3. 部分匹配（检查关键词是否包含映射的 key）
   for (const [key, value] of Object.entries(DASHBOARD_ICON_MAP)) {
     if (keyword.includes(key) || key.includes(keyword)) {
       return value
@@ -219,7 +297,6 @@ export function getIconUrl(url, iconUrl = '') {
     
     // unavatar.io 会自动尝试多个源并回退
     return `https://unavatar.io/${hostname}`
-    return `https://unavatar.io/${hostname}?fallback=false`
   } catch (e) {
     // 4. 最后的备用方案：DuckDuckGo
     try {
@@ -249,7 +326,6 @@ export function getFaviconUrl(url) {
 
 /**
  * 检查图标是否可访问（异步检查）
- * 这个函数可以在后台使用，用于预加载和缓存
  */
 export async function checkIconAvailable(iconUrl) {
   try {
@@ -262,7 +338,6 @@ export async function checkIconAvailable(iconUrl) {
 
 /**
  * 获取图标 URL 列表（用于备用）
- * @returns {string[]} 备用的图标URL列表
  */
 export function getFallbackIconUrls(url) {
   const urls = []
@@ -272,7 +347,6 @@ export function getFallbackIconUrls(url) {
     if (!domain.startsWith('http')) domain = 'https://' + domain
     const hostname = new URL(domain).hostname
     
-    // 按优先级添加
     urls.push(`https://unavatar.io/${hostname}`)
     urls.push(`https://icons.duckduckgo.com/ip3/${hostname}.ico`)
     urls.push(`https://www.google.com/s2/favicons?domain=${hostname}&sz=128`)
