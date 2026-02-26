@@ -1,9 +1,9 @@
 /**
  * 图标工具函数
- * 提供多种图标获取方案，解决无法访问 Google 的问题
+ * 优先使用网站原生 favicon，解决无法访问 Google 的问题
  */
 
-// dashboardicons 图标映射表（常用网站）
+// dashboardicons 图标映射表（仅用于精确匹配已知服务）
 const DASHBOARD_ICON_MAP = {
   // 常用网站
   'github': 'github',
@@ -37,7 +37,6 @@ const DASHBOARD_ICON_MAP = {
   'aws': 'aws',
   'azure': 'azure',
   'google': 'google',
-  'google.com': 'google',
   'microsoft': 'microsoft',
   'apple': 'apple',
   
@@ -48,9 +47,6 @@ const DASHBOARD_ICON_MAP = {
   'reactjs': 'react',
   'nextjs': 'nextjs',
   'tailwindcss': 'tailwindcss',
-  'typescript': 'typescript',
-  'javascript': 'js',
-  'nodejs': 'nodejs',
   
   // AI 工具
   'deepseek': 'deepseek',
@@ -58,27 +54,9 @@ const DASHBOARD_ICON_MAP = {
   'anthropic': 'anthropic',
   'claude': 'claude',
   'chatgpt': 'chatgpt',
-  'midjourney': 'midjourney',
-  'stabilityai': 'stability-ai',
   'siliconflow': 'siliconflow',
-  'huggingface': 'huggingface',
-  'bard': 'google-bard',
-  'gemini': 'google-gemini',
   'perplexity': 'perplexity',
-  'copilot': 'microsoft-copilot',
   'cursor': 'cursor',
-  'windsurf': 'windsurf',
-  'felo': 'felo',
-  
-  // 开发效率工具
-  'linear': 'linear',
-  'loom': 'loom',
-  'cal.com': 'cal',
-  'obsidian': 'obsidian',
-  'raycast': 'raycast',
-  'alfred': 'alfred',
-  'popclip': 'popclip',
-  'arc': 'arc',
   
   // 浏览器
   'brave': 'brave',
@@ -90,38 +68,20 @@ const DASHBOARD_ICON_MAP = {
   // 密码管理
   '1password': '1password',
   'bitwarden': 'bitwarden',
-  'lastpass': 'lastpass',
-  'dashlane': 'dashlane',
-  'keepass': 'keepass',
   
   // 监控
   'sentry': 'sentry',
-  'datadog': 'datadog',
-  'newrelic': 'new-relic',
   'grafana': 'grafana',
-  'prometheus': 'prometheus',
-  'uptimerobot': 'uptime-robot',
   
   // CI/CD
   'jenkins': 'jenkins',
-  'gitlab-ci': 'gitlab-ci',
-  'travis-ci': 'travis-ci',
   'circleci': 'circleci',
-  'github-actions': 'github-actions',
   
   // 部署平台
-  'railway': 'railway',
   'render': 'render',
-  'flyio': 'fly',
-  'koyeb': 'koyeb',
-  'zeabur': 'zeabur',
-  'wispbyte': 'wisp',
-  'clever-cloud': 'clever-cloud',
-  'fly': 'fly',
+  'supabase': 'supabase',
   
   // 数据库
-  'supabase': 'supabase',
-  'planetscale': 'planetscale',
   'mongodb': 'mongodb',
   'redis': 'redis',
   'postgresql': 'postgresql',
@@ -129,15 +89,10 @@ const DASHBOARD_ICON_MAP = {
   
   // ORM
   'prisma': 'prisma',
-  'drizzle': 'drizzle',
-  'sequelize': 'sequelize',
-  'typeorm': 'typeorm',
   
   // 服务器
   'nginx': 'nginx',
   'apache': 'apache',
-  'caddy': 'caddy',
-  'traefik': 'traefik',
   
   // 自托管
   'portainer': 'portainer',
@@ -145,12 +100,8 @@ const DASHBOARD_ICON_MAP = {
   'dozzle': 'dozzle',
   'gotify': 'gotify',
   'searxng': 'searxng',
-  'homarr': 'homarr',
   'adguard': 'adguard',
-  'pi-hole': 'pi-hole',
-  'mailcow': 'mailcow',
   'stirling-pdf': 'stirling-pdf',
-  'changedetection': 'changedetection',
   
   // 下载
   'qbittorrent': 'qbittorrent',
@@ -160,76 +111,28 @@ const DASHBOARD_ICON_MAP = {
   'jellyfin': 'jellyfin',
   'plex': 'plex',
   'emby': 'emby',
-  'sonarr': 'sonarr',
-  'radarr': 'radarr',
-  'lidarr': 'lidarr',
-  'readarr': 'readarr',
-  'prowlarr': 'prowlarr',
-  'tautulli': 'tautulli',
-  'ombi': 'ombi',
-  'jackett': 'jackett',
   
   // 文件管理
   'filebrowser': 'filebrowser',
   'it-tools': 'it-tools',
-  'hivision': 'hivision-idphotos',
-  'openlist': 'openlist',
-  'linkwarden': 'linkwarden',
   'alist': 'alist',
   
   // 自动化
   'n8n': 'n8n',
-  'pipedream': 'pipedream',
-  'zapier': 'zapier',
-  'make': 'make',
-  'integromat': 'integromat',
-  'ifttt': 'ifttt',
-  'nodered': 'node-red',
-  
-  // 智能家居
   'homeassistant': 'home-assistant',
-  'iobroker': 'iobroker',
   
   // 网络
-  'openwrt': 'openwrt',
   'tailscale': 'tailscale',
-  'wireguard': 'wireguard',
-  'zerotier': 'zerotier',
-  'cloudflared': 'cloudflared',
-  
-  // 图标/字体
-  'fontawesome': 'font-awesome',
-  'fontawesome.com': 'font-awesome',
-  
-  // IP 查询
-  'ip.sb': 'ip',
-  'www.ghxi.com': 'ip',
-  'ip111.cn': 'ip',
-  'iplark.com': 'ip',
-  'ipjiance.com': 'ip',
-  'scamalytics.com': 'ip',
-  'ipdata.co': 'ip',
-  
-  // 域名
-  'gname.vip': 'domain',
-  'www.idc.lc': 'domain',
-  'domain.nodeloc.com': 'domain',
-  'nic.ua': 'domain',
-  'nic.zle.ee': 'domain',
-  'freedidi.com': 'domain',
-  'svgtopng.com': 'image',
 }
 
 /**
- * 从 URL 中提取域名关键词
+ * 从 URL 中提取域名
  */
-function extractDomainKeyword(url) {
+function extractHostname(url) {
   try {
     if (!url.startsWith('http')) url = 'https://' + url
     const hostname = new URL(url).hostname
-    // 移除 www. 前缀
-    const domain = hostname.replace(/^www\./, '')
-    return domain
+    return hostname.replace(/^www\./, '')
   } catch (e) {
     return ''
   }
@@ -239,26 +142,26 @@ function extractDomainKeyword(url) {
  * 查找 dashboardicons 图标
  */
 function findDashboardIcon(url) {
-  const keyword = extractDomainKeyword(url).toLowerCase()
-  if (!keyword) return null
+  const hostname = extractHostname(url).toLowerCase()
+  if (!hostname) return null
 
   // 1. 精确匹配完整域名
-  if (DASHBOARD_ICON_MAP[keyword]) {
-    return DASHBOARD_ICON_MAP[keyword]
+  if (DASHBOARD_ICON_MAP[hostname]) {
+    return DASHBOARD_ICON_MAP[hostname]
   }
 
-  // 2. 精确匹配（去掉 com/net/org 等后缀）
-  const parts = keyword.split('.')
+  // 2. 精确匹配主域名（如 huggingface.co -> huggingface）
+  const parts = hostname.split('.')
   if (parts.length >= 2) {
-    const mainPart = parts[0] // 如 github, huggingface 等
+    const mainPart = parts[0]
     if (DASHBOARD_ICON_MAP[mainPart]) {
       return DASHBOARD_ICON_MAP[mainPart]
     }
   }
 
-  // 3. 部分匹配（检查关键词是否包含映射的 key）
+  // 3. 部分匹配
   for (const [key, value] of Object.entries(DASHBOARD_ICON_MAP)) {
-    if (keyword.includes(key) || key.includes(keyword)) {
+    if (hostname.includes(key) || key.includes(hostname)) {
       return value
     }
   }
@@ -267,12 +170,25 @@ function findDashboardIcon(url) {
 }
 
 /**
+ * 获取网站原生 favicon
+ * 优先使用 /favicon.ico
+ */
+function getNativeFavicon(url) {
+  const hostname = extractHostname(url)
+  if (!hostname) return null
+  
+  // 优先使用网站的原生 favicon
+  return `https://${hostname}/favicon.ico`
+}
+
+/**
  * 获取网站图标 URL
  * 优先级：
  * 1. 手动设置的 iconUrl
- * 2. dashboardicons.com 本地图标（匹配最准，最快）
- * 3. unavatar.io（聚合多个源）
- * 4. DuckDuckGo（备用）
+ * 2. dashboardicons.com 本地图标（仅针对已知服务）
+ * 3. 网站原生 favicon（最重要！）
+ * 4. unavatar.io（聚合多个源）
+ * 5. DuckDuckGo（备用）
  * 
  * @param {string} url - 网站URL
  * @param {string} iconUrl - 手动设置的图标URL
@@ -282,50 +198,50 @@ export function getIconUrl(url, iconUrl = '') {
   // 1. 优先用手动填的链接
   if (iconUrl) return iconUrl
 
-  // 2. 尝试 dashboardicons 本地图标
+  // 2. 尝试 dashboardicons 本地图标（仅针对有映射的）
   const dashboardIconName = findDashboardIcon(url)
   if (dashboardIconName) {
-    // 优先用 SVG，更清晰
     return `https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/${dashboardIconName}.svg`
   }
 
-  // 3. 自动抓取：使用 unavatar.io（聚合多个源，自动回退）
-  try {
-    let domain = url
-    if (!domain.startsWith('http')) domain = 'https://' + domain
-    const hostname = new URL(domain).hostname
-    
-    // unavatar.io 会自动尝试多个源并回退
-    return `https://unavatar.io/${hostname}`
-  } catch (e) {
-    // 4. 最后的备用方案：DuckDuckGo
-    try {
-      let domain = url
-      if (!domain.startsWith('http')) domain = 'https://' + domain
-      const hostname = new URL(domain).hostname
-      return `https://icons.duckduckgo.com/ip3/${hostname}.ico`
-    } catch (e2) {
-      return ''
-    }
+  // 3. 使用网站原生 favicon（最重要！最通用！）
+  const nativeFavicon = getNativeFavicon(url)
+  if (nativeFavicon) {
+    return nativeFavicon
   }
+
+  // 4. unavatar.io 作为备用
+  try {
+    const hostname = extractHostname(url)
+    if (hostname) {
+      return `https://unavatar.io/${hostname}`
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  // 5. DuckDuckGo 最后备用
+  try {
+    const hostname = extractHostname(url)
+    if (hostname) {
+      return `https://icons.duckduckgo.com/ip3/${hostname}.ico`
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  return ''
 }
 
 /**
  * 获取 favicon URL（用于兼容性场景）
  */
 export function getFaviconUrl(url) {
-  try {
-    let domain = url
-    if (!domain.startsWith('http')) domain = 'https://' + domain
-    const hostname = new URL(domain).hostname
-    return `https://www.google.com/s2/favicons?domain=${hostname}&sz=128`
-  } catch (e) {
-    return ''
-  }
+  return getNativeFavicon(url) || ''
 }
 
 /**
- * 检查图标是否可访问（异步检查）
+ * 检查图标是否可访问
  */
 export async function checkIconAvailable(iconUrl) {
   try {
@@ -341,18 +257,13 @@ export async function checkIconAvailable(iconUrl) {
  */
 export function getFallbackIconUrls(url) {
   const urls = []
+  const hostname = extractHostname(url)
   
-  try {
-    let domain = url
-    if (!domain.startsWith('http')) domain = 'https://' + domain
-    const hostname = new URL(domain).hostname
-    
+  if (hostname) {
+    urls.push(`https://${hostname}/favicon.ico`)
     urls.push(`https://unavatar.io/${hostname}`)
     urls.push(`https://icons.duckduckgo.com/ip3/${hostname}.ico`)
     urls.push(`https://www.google.com/s2/favicons?domain=${hostname}&sz=128`)
-    urls.push(`https://ico.faviconkit.net/favicon/${hostname}`)
-  } catch (e) {
-    // ignore
   }
   
   return urls
