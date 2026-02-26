@@ -663,7 +663,6 @@
       :show="showAddWebsiteModal"
       :loading="addWebsiteLoading"
       :error="addWebsiteError"
-      :categories="navItems.map(item => item.category)"
       :initialCategory="activeCategory === 'frequent' || activeCategory === 'favorites' ? (navItems.length > 0 ? navItems[0].category : '') : activeCategory"
       @close="showAddWebsiteModal = false"
       @submit="submitAddWebsiteForm"
@@ -845,13 +844,11 @@ const autoFillIcons = async () => {
     
     if (result.success) {
       syncStatus.value = { type: 'success', message: result.message }
-      // 刷新数据
       await refreshNavData()
     } else {
       syncStatus.value = { type: 'error', message: result.error || result.message }
     }
     
-    // 3秒后清除状态
     setTimeout(() => {
       syncStatus.value = null
     }, 3000)
@@ -1808,11 +1805,6 @@ const submitAddWebsite = async () => {
     addWebsiteLoading.value = false
   }
 }
-
-// 别名：兼容模板中的 submitAddWebsiteForm
-const submitAddWebsiteForm = submitAddWebsite
-
-// 删除网站
 
 // 删除网站
 const deleteWebsite = async (item) => {
