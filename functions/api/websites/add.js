@@ -38,11 +38,11 @@ export async function onRequest(context) {
   }
 
   // 如果没有提供 iconUrl，自动根据 URL 获取
-  let autoIconUrl = data.iconUrl || ''
-  if (!autoIconUrl && data.url) {
+  let iconUrl = data.iconUrl || ''
+  if (!iconUrl && data.url) {
     try {
       const hostname = new URL(data.url.startsWith('http') ? data.url : 'https://' + data.url).hostname.replace(/^www\./, '')
-      autoIconUrl = `https://${hostname}/favicon.ico`
+      iconUrl = `https://${hostname}/favicon.ico`
     } catch (e) {
       // ignore
     }
@@ -58,35 +58,7 @@ export async function onRequest(context) {
       data.url,
       data.category,
       data.desc || '',
-      autoIconUrl,
-      data.lanUrl || '',
-      data.darkIcon ? 1 : 0
-    ).run()
-
-    // 获取新插入的 ID（从结果中获取）
-    // 插入数据并获取结果
-    const result = await env.DB.prepare(`
-      INSERT INTO websites (name, url, category, desc, icon_url, lan_url, dark_icon)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).bind(
-      data.name,
-      data.url,
-      data.category,
-      data.desc || '',
-      autoIconUrl,
-      data.lanUrl || '',
-      data.darkIcon ? 1 : 0
-    ).run()
-    // 插入数据并获取结果
-    const result = await env.DB.prepare(`
-      INSERT INTO websites (name, url, category, desc, icon_url, lan_url, dark_icon)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).bind(
-      data.name,
-      data.url,
-      data.category,
-      data.desc || '',
-      data.iconUrl || '',
+      iconUrl,
       data.lanUrl || '',
       data.darkIcon ? 1 : 0
     ).run()
