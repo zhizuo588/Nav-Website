@@ -653,6 +653,7 @@
       :show="showAddWebsiteModal"
       :loading="addWebsiteLoading"
       :error="addWebsiteError"
+      :categories="navItems.map(item => item.category)"
       :initialCategory="activeCategory === 'frequent' || activeCategory === 'favorites' ? (navItems.length > 0 ? navItems[0].category : '') : activeCategory"
       @close="showAddWebsiteModal = false"
       @submit="submitAddWebsiteForm"
@@ -1761,6 +1762,11 @@ const submitAddWebsite = async () => {
     addWebsiteLoading.value = false
   }
 }
+
+// 别名：兼容模板中的 submitAddWebsiteForm
+const submitAddWebsiteForm = submitAddWebsite
+
+// 删除网站
 
 // 删除网站
 const deleteWebsite = async (item) => {

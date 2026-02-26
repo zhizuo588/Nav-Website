@@ -109,6 +109,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { getIconUrl } from '../utils/icon'
 
 const props = defineProps({
   item: Object,
@@ -160,19 +161,8 @@ const handleContextMenu = (event) => {
 }
 
 const iconSrc = computed(() => {
-  // 1. 优先用手动填的链接
-  if (props.item.iconUrl) return props.item.iconUrl
-
-  // 2. 自动抓取：尝试使用 Google favicon 服务 (比 unavatar.io 更稳定)
-  try {
-    let domain = props.item.url
-    if (!domain.startsWith('http')) domain = 'https://' + domain
-    const hostname = new URL(domain).hostname
-
-    return `https://www.google.com/s2/favicons?domain=${hostname}&sz=128`
-  } catch (e) {
-    return ''
-  }
+  // 使用新的图标加载逻辑（支持 dashboardicons + 多源回退）
+  return getIconUrl(props.item.url, props.item.iconUrl)
 })
 
 const lastVisitTime = computed(() => {

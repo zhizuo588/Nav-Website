@@ -1,5 +1,7 @@
 // 导航网站数据 - 从 API 动态加载
 
+import { getIconUrl } from './utils/icon'
+
 /**
  * 从 D1 数据库加载导航网站数据
  * @returns {Promise<Array>} 分类数据列表
@@ -222,10 +224,10 @@ export const searchEngines = [
   }
 ]
 
-// ========== 友情链接 ==========
+// ========== 友谊链接 ==========
 /**
- * 从 D1 数据库加载友情链接
- * @returns {Promise<Array>} 友情链接列表
+ * 从 D1 数据库加载友谊链接
+ * @returns {Promise<Array>} 友谊链接列表
  */
 export async function fetchFriendLinks() {
   try {
@@ -243,43 +245,43 @@ export async function fetchFriendLinks() {
       throw new Error(data.error)
     }
 
-    // 从分类中找到"友情链接"分类
+    // 从分类中找到"友谊链接"分类
     if (!Array.isArray(data.navItems)) {
       return []
     }
 
-    const friendCategory = data.navItems.find(cat => cat.category === '友情链接')
+    const friendCategory = data.navItems.find(cat => cat.category === '友谊链接')
 
     if (!friendCategory || !Array.isArray(friendCategory.items)) {
       return []
     }
 
-    // 转换为友情链接格式
+    // 转换为友谊链接格式
     return friendCategory.items.map(item => ({
       id: item.id,
       name: item.name,
       url: item.url,
       desc: item.desc || '',
-      icon: item.iconUrl || `https://www.google.com/s2/favicons?domain=${new URL(item.url).hostname}&sz=64`,
-      category: '友情链接'
+      icon: getIconUrl(item.url, item.iconUrl),
+      category: '友谊链接'
     }))
 
   } catch (error) {
-    console.error('❌ 加载友情链接失败:', error)
+    console.error('❌ 加载友谊链接失败:', error)
     // 返回静态数据作为降级处理
     return [
-      { name: 'GitHub', url: 'https://github.com', icon: 'https://github.com/favicon.ico' },
-      { name: 'Vercel', url: 'https://vercel.com', icon: 'https://vercel.com/favicon.ico' },
-      { name: 'Cloudflare', url: 'https://cloudflare.com', icon: 'https://cloudflare.com/favicon.ico' }
+      { name: 'GitHub', url: 'https://github.com', icon: getIconUrl('https://github.com') },
+      { name: 'Vercel', url: 'https://vercel.com', icon: getIconUrl('https://vercel.com') },
+      { name: 'Cloudflare', url: 'https://cloudflare.com', icon: getIconUrl('https://cloudflare.com') }
     ]
   }
 }
 
 // 保持向后兼容，静态数据作为降级使用
 export const friendLinks = [
-  { name: 'GitHub', url: 'https://github.com', icon: 'https://github.com/favicon.ico' },
-  { name: 'Vercel', url: 'https://vercel.com', icon: 'https://vercel.com/favicon.ico' },
-  { name: 'Cloudflare', url: 'https://cloudflare.com', icon: 'https://cloudflare.com/favicon.ico' }
+  { name: 'GitHub', url: 'https://github.com', icon: getIconUrl('https://github.com') },
+  { name: 'Vercel', url: 'https://vercel.com', icon: getIconUrl('https://vercel.com') },
+  { name: 'Cloudflare', url: 'https://cloudflare.com', icon: getIconUrl('https://cloudflare.com') }
 ]
 
 // ========== 说明 ==========

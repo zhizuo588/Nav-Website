@@ -23,6 +23,43 @@
       </div>
 
       <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">所属分类 *</label>
+        <!-- 分类按钮选择器 -->
+        <div class="relative">
+          <button
+            type="button"
+            @click="showCategoryDropdown = !showCategoryDropdown"
+            class="w-full px-4 py-2.5 bg-white/50 dark:bg-gray-800/50 border border-black/10 dark:border-white/10 rounded-xl text-left flex items-center justify-between hover:border-primary/50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
+          >
+            <span :class="form.category ? 'text-gray-900 dark:text-gray-100' : 'text-gray-400'">
+              {{ form.category || '请选择分类' }}
+            </span>
+            <svg class="w-5 h-5 text-gray-400 transition-transform" :class="{ 'rotate-180': showCategoryDropdown }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          
+          <!-- 分类下拉列表 -->
+          <div
+            v-if="showCategoryDropdown"
+            class="absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 border border-black/10 dark:border-white/10 rounded-xl shadow-xl max-h-60 overflow-y-auto"
+          >
+            <button
+              v-for="cat in categories"
+              :key="cat"
+              type="button"
+              @click="selectCategory(cat)"
+              class="w-full px-4 py-2.5 text-left hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors flex items-center gap-2"
+              :class="{ 'bg-primary/20 text-primary': form.category === cat }"
+            >
+              <span class="w-2 h-2 rounded-full bg-primary/60"></span>
+              <span class="text-gray-900 dark:text-gray-100">{{ cat }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">网站描述</label>
         <input v-model="form.desc" type="text" class="glass-input" placeholder="简单的一句话介绍（可选）">
       </div>
@@ -59,14 +96,18 @@
 </template>
 
 <script setup>
-import { reactive, watch } from 'vue'
+import { reactive, ref, watch, onMounted, onUnmounted } from 'vue'
 import BaseModal from './BaseModal.vue'
 
 const props = defineProps({
   show: Boolean,
   loading: Boolean,
   error: String,
-  initialCategory: String
+  initialCategory: String,
+  categories: {
+    type: Array,
+    default: () => []
+  }
 })
 
 const emit = defineEmits(['close', 'submit'])
@@ -81,6 +122,28 @@ const form = reactive({
   darkIcon: false
 })
 
+const showCategoryDropdown = ref(false)
+
+const selectCategory = (cat) => {
+  form.category = cat
+  showCategoryDropdown.value = false
+}
+
+// 点击外部关闭下拉菜单
+const handleClickOutside = (event) => {
+  if (showCategoryDropdown.value && !event.target.closest('.relative')) {
+    showCategoryDropdown.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
+
 watch(() => props.show, (newVal) => {
   if (newVal) {
     form.name = ''
@@ -90,6 +153,7 @@ watch(() => props.show, (newVal) => {
     form.iconUrl = ''
     form.lanUrl = ''
     form.darkIcon = false
+    showCategoryDropdown.value = false
   }
 })
 </script>
