@@ -62,6 +62,21 @@ export async function onRequest(context) {
       data.lanUrl || '',
       data.darkIcon ? 1 : 0
     ).run()
+
+    // 获取新插入的 ID（从结果中获取）
+    // 插入数据并获取结果
+    const result = await env.DB.prepare(`
+      INSERT INTO websites (name, url, category, desc, icon_url, lan_url, dark_icon)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      data.name,
+      data.url,
+      data.category,
+      data.desc || '',
+      autoIconUrl,
+      data.lanUrl || '',
+      data.darkIcon ? 1 : 0
+    ).run()
     // 插入数据并获取结果
     const result = await env.DB.prepare(`
       INSERT INTO websites (name, url, category, desc, icon_url, lan_url, dark_icon)
