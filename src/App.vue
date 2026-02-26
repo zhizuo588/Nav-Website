@@ -65,6 +65,17 @@
             </button>
           </div>
 
+            <!-- 添加网站按钮 -->
+            <button
+              @click="openAddWebsiteModal"
+              class="p-1.5 rounded-full transition-all duration-300 border backdrop-blur-md inline-flex items-center justify-center bg-gradient-to-r from-green-500 to-emerald-500 border-green-400 text-white hover:shadow-lg hover:shadow-green-500/30 hover:scale-110"
+              title="添加网站"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+            </button>
+
           <!-- 同步状态指示器 -->
           <div v-if="syncStatus" class="text-[10px] sm:text-xs" :class="syncStatus.type === 'success' ? 'text-green-400' : 'text-red-400'">
             {{ syncStatus.message }}
@@ -790,6 +801,129 @@
         </div>
       </div>
     </div>
+    <!-- 12. 添加网站弹窗 -->
+    <div v-if="showAddWebsiteModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="showAddWebsiteModal = false">
+      <div class="absolute inset-0 bg-black/70 backdrop-blur-md"></div>
+      
+      <div class="relative bg-white/90 dark:bg-gray-800/95 border border-gray-200 dark:border-white/10 rounded-3xl shadow-2xl p-6 w-full max-w-lg transform transition-all">
+        <!-- 光效背景 -->
+        <div class="absolute inset-0 bg-gradient-to-br from-green-500/5 via-transparent to-emerald-500/5 rounded-3xl pointer-events-none"></div>
+
+        <div class="relative z-10">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <span class="w-1 h-6 bg-gradient-to-b from-green-500 to-emerald-500 rounded-full shadow-lg shadow-green-500/50"></span>
+              添加网站到「{{ activeCategory === 'frequent' ? '常用' : (activeCategory === 'favorites' ? '收藏' : activeCategory) }}」
+            </h3>
+            <button @click="showAddWebsiteModal = false" class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+          </div>
+
+          <!-- 错误提示 -->
+          <div v-if="addWebsiteError" class="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 rounded-xl flex items-center gap-2 text-red-600 dark:text-red-400">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="text-sm">{{ addWebsiteError }}</span>
+          </div>
+
+          <form @submit.prevent="submitAddWebsite" class="space-y-4">
+            <!-- 网站名称 -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">网站名称 *</label>
+              <input
+                v-model="addWebsiteForm.name"
+                type="text"
+                required
+                class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-all"
+                placeholder="例如：GitHub"
+              >
+            </div>
+
+            <!-- 网站链接 -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">网站链接 *</label>
+              <input
+                v-model="addWebsiteForm.url"
+                type="url"
+                required
+                class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-all"
+                placeholder="例如：https://github.com"
+              >
+            </div>
+
+            <!-- 网站描述 -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">网站描述</label>
+              <input
+                v-model="addWebsiteForm.desc"
+                type="text"
+                class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-all"
+                placeholder="简单的一句话介绍（可选）"
+              >
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <!-- 图标 URL -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">图标链接</label>
+                <input
+                  v-model="addWebsiteForm.iconUrl"
+                  type="url"
+                  class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-all"
+                  placeholder="留空自动获取"
+                >
+              </div>
+
+              <!-- 内网链接 -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">内网链接</label>
+                <input
+                  v-model="addWebsiteForm.lanUrl"
+                  type="url"
+                  class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-all"
+                  placeholder="（可选）"
+                >
+              </div>
+            </div>
+
+            <!-- 深色图标选项 -->
+            <div class="flex items-center gap-2 pt-1">
+              <input
+                v-model="addWebsiteForm.darkIcon"
+                type="checkbox"
+                id="addDarkIcon"
+                class="w-4 h-4 rounded border-gray-300 dark:border-white/10 bg-white dark:bg-gray-900/50 text-green-500 focus:ring-green-500/50"
+              >
+              <label for="addDarkIcon" class="text-sm text-gray-600 dark:text-gray-400 cursor-pointer">这是一个深色图标（需要反色显示）</label>
+            </div>
+
+            <!-- 按钮 -->
+            <div class="flex gap-3 pt-4">
+              <button
+                type="button"
+                @click="showAddWebsiteModal = false"
+                class="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700/50 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-xl transition-colors font-medium"
+              >
+                取消
+              </button>
+              <button
+                type="submit"
+                :disabled="addWebsiteLoading"
+                class="flex-1 px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-xl transition-all shadow-lg shadow-green-500/30 hover:shadow-green-500/50 font-medium disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+              >
+                <svg v-if="addWebsiteLoading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>{{ addWebsiteLoading ? '添加中...' : '确认添加' }}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
 
   </div>
 </template>
@@ -823,6 +957,18 @@ const showSyncModal = ref(false) // 控制同步弹窗
 const showThemeModal = ref(false) // 控制主题弹窗
 const showEditModal = ref(false) // 控制编辑弹窗
 const showBookmarkImport = ref(false) // 控制书签导入弹窗
+const showAddWebsiteModal = ref(false) // 控制添加网站弹窗
+const addWebsiteForm = ref({
+  name: '',
+  url: '',
+  desc: '',
+  category: '',
+  iconUrl: '',
+  lanUrl: '',
+  darkIcon: false
+})
+const addWebsiteLoading = ref(false)
+const addWebsiteError = ref('')
 const passwordInput = ref('') // 密码输入
 let searchDebounceTimer = null
 
@@ -1805,6 +1951,78 @@ const saveEdit = async () => {
     }
   } catch (error) {
     alert('保存失败：' + error.message)
+  }
+}
+
+// 打开添加网站弹窗
+const openAddWebsiteModal = () => {
+  // 默认分类设置为当前选中的分类，除非是特殊分类
+  let defaultCategory = activeCategory.value
+  if (defaultCategory === 'frequent' || defaultCategory === 'favorites') {
+    defaultCategory = navItems.value.length > 0 ? navItems.value[0].category : ''
+  }
+  
+  addWebsiteForm.value = {
+    name: '',
+    url: '',
+    desc: '',
+    category: defaultCategory,
+    iconUrl: '',
+    lanUrl: '',
+    darkIcon: false
+  }
+  addWebsiteError.value = ''
+  showAddWebsiteModal.value = true
+}
+
+// 提交添加网站
+const submitAddWebsite = async () => {
+  if (!addWebsiteForm.value.name || !addWebsiteForm.value.url) {
+    addWebsiteError.value = '请填写网站名称和链接'
+    return
+  }
+
+  const adminPassword = await requestAdminPassword()
+  if (!adminPassword) return
+
+  addWebsiteLoading.value = true
+  addWebsiteError.value = ''
+
+  try {
+    const response = await fetch('/api/websites/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${adminPassword}`
+      },
+      body: JSON.stringify(addWebsiteForm.value)
+    })
+
+    const result = await response.json()
+
+    if (response.ok && result.success) {
+      showAddWebsiteModal.value = false
+      syncStatus.value = { type: 'success', message: '✅ 添加成功' }
+      setTimeout(() => syncStatus.value = null, 2000)
+      
+      // 重新加载数据
+      await refreshNavData()
+      
+      // 如果添加的分类不是当前分类，且不是常用/收藏/搜索，则切换到该分类
+      if (activeCategory.value !== 'frequent' && 
+          activeCategory.value !== 'favorites' && 
+          activeCategory.value !== 'nav-search' &&
+          activeCategory.value !== addWebsiteForm.value.category) {
+        activeCategory.value = addWebsiteForm.value.category
+      }
+    } else {
+      if (response.status === 401) clearAdminPasswordCache()
+      addWebsiteError.value = result.error || result.message || '添加失败'
+    }
+  } catch (error) {
+    addWebsiteError.value = '网络错误：' + error.message
+  } finally {
+    addWebsiteLoading.value = false
   }
 }
 
