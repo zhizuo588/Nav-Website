@@ -163,13 +163,13 @@ const iconSrc = computed(() => {
   // 1. 优先用手动填的链接
   if (props.item.iconUrl) return props.item.iconUrl
 
-  // 2. 自动抓取：尝试使用 unavatar.io
+  // 2. 自动抓取：尝试使用 Google favicon 服务 (比 unavatar.io 更稳定)
   try {
     let domain = props.item.url
     if (!domain.startsWith('http')) domain = 'https://' + domain
     const hostname = new URL(domain).hostname
 
-    return `https://unavatar.io/${hostname}`
+    return `https://www.google.com/s2/favicons?domain=${hostname}&sz=128`
   } catch (e) {
     return ''
   }
