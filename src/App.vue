@@ -196,13 +196,28 @@
               </div>
             </div>
           </div>
-          <input
-            v-model="searchQuery"
-            @keypress.enter="handleSearch"
-            type="text"
-            :placeholder="`在 ${currentEngine.name} 中搜索...`"
-            class="flex-1 w-full bg-transparent text-white placeholder-gray-500 px-2 sm:px-4 py-1.5 sm:py-2 focus:outline-none text-sm sm:text-base"
-          />
+          <div class="relative flex-1">
+            <input
+              v-model="searchQuery"
+              @keypress.enter="handleSearch"
+              type="text"
+              :placeholder="`在 ${currentEngine.name} 中搜索...`"
+              class="w-full bg-transparent text-white placeholder-gray-500 px-2 sm:px-4 py-1.5 sm:py-2 focus:outline-none text-sm sm:text-base pr-8 sm:pr-10"
+              ref="searchInputRef"
+            />
+            <!-- 清除搜索按钮 -->
+            <button
+              v-if="searchQuery"
+              @click="clearSearch"
+              class="absolute right-1 sm:right-2 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-white transition-colors"
+              aria-label="清除搜索"
+              type="button"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
           <button
             @click="handleSearch"
             class="hidden sm:flex px-4 sm:px-6 py-1.5 sm:py-2 bg-primary hover:bg-primary/90 text-white rounded-xl transition-all font-medium items-center gap-2 shadow-lg shadow-primary/20 text-sm"
@@ -872,6 +887,19 @@ const cancelAdminAuth = () => {
   showAdminAuthModal.value = false
 }
 
+// 创建搜索输入引用
+const searchInputRef = ref(null)
+
+// 清除搜索函数
+const clearSearch = () => {
+  searchQuery.value = ''
+  // 聚焦到搜索输入框
+  nextTick(() => {
+    if (searchInputRef.value) {
+      searchInputRef.value.focus()
+    }
+  })
+}
 // === 右键菜单状态 ===
 const contextMenuVisible = ref(false)
 const contextMenuX = ref(0)
@@ -1567,7 +1595,7 @@ const verifyPassword = async () => {
     if (response.ok && result.success) {
       isPrivateUnlocked.value = true
       showPasswordModal.value = false
-      activeCategory.value = 'private'
+      activeCategory.value = '私密'
       passwordError.value = false
       passwordInput.value = ''
     } else {
@@ -2198,18 +2226,16 @@ const filteredItems = computed(() => {
     })
     // 应用自定义排序
     items = sortItemsByCustomOrder(items, 'favorites')
-  } else if (activeCategory.value === 'private') {
-    // 私密分类：需要密码验证
-    if (!isPrivateUnlocked.value) {
-      // 如果未解锁，不显示任何内容
-      return []
-    }
-    // 查找私密分类
-    const category = navItems.value.find(c => c.category === '私密')
+    // 普通分类
+    const category = navItems.value.find(c => c.category === activeCategory.value)
     if (category) {
+      // 如果是私密分类且未解锁，返回空数组
+      if (category.category === '私密' && !isPrivateUnlocked.value) {
+        return []
+      }
       items = category.items
       // 应用自定义排序
-      items = sortItemsByCustomOrder(items, '私密')
+      items = sortItemsByCustomOrder(items, activeCategory.value)
     }
   } else {
     // 普通分类
