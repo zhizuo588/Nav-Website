@@ -829,11 +829,7 @@ const isAutoFilling = ref(false)
 // 自动匹配图标
 const autoFillIcons = async () => {
   if (isAutoFilling.value) return
-  
-  if (!confirm('将为所有缺少图标的网站自动匹配图标，是否继续？')) {
-    return
-  }
-  
+  if (!confirm('将为所有缺少图标的网站自动匹配图标，是否继续？')) return
   isAutoFilling.value = true
   try {
     const response = await fetch(`${API_BASE}/api/websites/autofill-icons`, {
@@ -841,17 +837,13 @@ const autoFillIcons = async () => {
       headers: { 'Content-Type': 'application/json' }
     })
     const result = await response.json()
-    
     if (result.success) {
       syncStatus.value = { type: 'success', message: result.message }
       await refreshNavData()
     } else {
       syncStatus.value = { type: 'error', message: result.error || result.message }
     }
-    
-    setTimeout(() => {
-      syncStatus.value = null
-    }, 3000)
+    setTimeout(() => { syncStatus.value = null }, 3000)
   } catch (error) {
     syncStatus.value = { type: 'error', message: '匹配图标失败: ' + error.message }
   } finally {
