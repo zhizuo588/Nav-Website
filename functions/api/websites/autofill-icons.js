@@ -15,18 +15,66 @@ import {
 } from '../_middleware.js'
 
 // 图标获取优先级：
-// 1. 网站原生 favicon (/favicon.ico)
-// 2. unavatar.io 服务
+// 1. api.iowen.cn 服务 (国内最稳定)
+// 2. favicon.im 服务
 // 3. DuckDuckGo 图标服务
-function getAutoIconUrl(url) {
+// 4. Google Favicon 服务
+// 5. 网站原生 favicon (/favicon.ico)
+
+// 检测 URL 是否返回有效的图片
+async function checkFavicon(url) {
+  try {
+    // 设置较短的超时时间避免阻塞过久
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 2000)
+    
+    // 使用 GET 请求而不是 HEAD，因为有些简单的图标 API 服务器不支持 HEAD，或者即使 404 也返回不规范的内容
+    const response = await fetch(url, { 
+      method: 'GET', 
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
+      signal: controller.signal
+    })
+    
+    clearTimeout(timeoutId)
+    
+    // 检查状态码并且内容类型必须是图片
+    if (response.ok) {
+      const contentType = response.headers.get('content-type')
+      if (contentType && contentType.startsWith('image/')) {
+        return true
+      }
+    }
+    return false
+  } catch (e) {
+    return false
+  }
+}
+
+async function getAutoIconUrl(url) {
   try {
     if (!url.startsWith('http')) {
       url = 'https://' + url
     }
     const hostname = new URL(url).hostname.replace(/^www\./, '')
     
-    // 优先使用网站原生 favicon
-    return `https://${hostname}/favicon.ico`
+    const sources = [
+      `https://api.iowen.cn/favicon/${hostname}.png`,
+      `https://favicon.im/${hostname}`,
+      `https://icons.duckduckgo.com/ip3/${hostname}.ico`,
+      `https://www.google.com/s2/favicons?domain=${hostname}&sz=128`,
+      `https://${hostname}/favicon.ico`
+    ]
+
+    // 逐个检测有效性，使用能够正常返回图片的源
+    for (const source of sources) {
+      const isValid = await checkFavicon(source)
+      if (isValid) {
+        return source
+      }
+    }
+    
+    // 如果全部失败，默认返回最可靠的 api.iowen.cn（虽然前端加载可能会失败，但这是最后的倔强）
+    return `https://api.iowen.cn/favicon/${hostname}.png`
   } catch (e) {
     return ''
   }
