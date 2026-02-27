@@ -57,8 +57,6 @@ const DASHBOARD_ICON_MAP = {
   'siliconflow': 'siliconflow',
   'perplexity': 'perplexity',
   'cursor': 'cursor',
-  'gemini': 'gemini',
-  'google-ai-studio': 'gemini',
 
   // 浏览器
   'brave': 'brave',
