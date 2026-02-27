@@ -27,16 +27,16 @@ async function checkFavicon(url) {
     // 设置较短的超时时间避免阻塞过久
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 2000)
-    
+
     // 使用 GET 请求而不是 HEAD，因为有些简单的图标 API 服务器不支持 HEAD，或者即使 404 也返回不规范的内容
-    const response = await fetch(url, { 
-      method: 'GET', 
+    const response = await fetch(url, {
+      method: 'GET',
       headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
       signal: controller.signal
     })
-    
+
     clearTimeout(timeoutId)
-    
+
     // 检查状态码并且内容类型必须是图片
     if (response.ok) {
       const contentType = response.headers.get('content-type')
@@ -56,7 +56,7 @@ async function getAutoIconUrl(url) {
       url = 'https://' + url
     }
     const hostname = new URL(url).hostname.replace(/^www\./, '')
-    
+
     const sources = [
       `https://api.iowen.cn/favicon/${hostname}.png`,
       `https://favicon.im/${hostname}`,
@@ -72,7 +72,7 @@ async function getAutoIconUrl(url) {
         return source
       }
     }
-    
+
     // 如果全部失败，默认返回最可靠的 api.iowen.cn（虽然前端加载可能会失败，但这是最后的倔强）
     return `https://api.iowen.cn/favicon/${hostname}.png`
   } catch (e) {
@@ -121,7 +121,7 @@ export async function onRequest(context) {
 // 批量自动填充
 async function handleBatchAutoFill(request, env) {
   const data = await request.json().catch(() => ({}))
-  
+
   // 可选：限制每次处理的数量
   const limit = data.limit || 100
   const dryRun = data.dryRun || false
@@ -134,7 +134,7 @@ async function handleBatchAutoFill(request, env) {
   `).bind(limit).all()
 
   const websites = result.results || []
-  
+
   if (websites.length === 0) {
     return jsonResponse({
       success: true,
@@ -145,12 +145,12 @@ async function handleBatchAutoFill(request, env) {
 
   if (dryRun) {
     // 试运行模式：只返回结果不更新
-    const preview = websites.map(w => ({
+    const preview = await Promise.all(websites.map(async w => ({
       id: w.id,
       url: w.url,
       name: w.name,
-      autoIconUrl: getAutoIconUrl(w.url)
-    }))
+      autoIconUrl: await getAutoIconUrl(w.url)
+    })))
     return jsonResponse({
       success: true,
       message: `发现 ${websites.length} 个网站需要填充图标（试运行模式）`,
@@ -165,7 +165,7 @@ async function handleBatchAutoFill(request, env) {
 
   for (const website of websites) {
     try {
-      const iconUrl = getAutoIconUrl(website.url)
+      const iconUrl = await getAutoIconUrl(website.url)
       if (iconUrl) {
         await env.DB.prepare(`
           UPDATE websites SET icon_url = ?, updated_at = CURRENT_TIMESTAMP 
@@ -193,13 +193,13 @@ async function handleBatchAutoFill(request, env) {
 // 单个图标获取
 async function handleSingleIcon(request, env) {
   const url = new URL(request.url).searchParams.get('url')
-  
+
   if (!url) {
     return jsonResponse({ error: '缺少 URL 参数' }, 400)
   }
 
-  const iconUrl = getAutoIconUrl(url)
-  
+  const iconUrl = await getAutoIconUrl(url)
+
   if (!iconUrl) {
     return jsonResponse({ error: '无法从 URL 中提取域名' }, 400)
   }
