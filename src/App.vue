@@ -25,14 +25,7 @@
           @open-add-website="openAddWebsiteModal"
           @auto-fill-icons="autoFillIcons"
         />
-          :is-edit-mode="isCategoryEditModeActive"
-          :sync-status="syncStatus"
-          @open-sync="showSyncModal = true"
-          @open-theme="showThemeModal = true"
-          @toggle-edit="toggleCategoryEditMode"
-          @open-import="showBookmarkImport = true"
-          @open-add-website="openAddWebsiteModal"
-        />
+
 
         <nav class="flex justify-center px-1">
           <div class="flex flex-wrap justify-center gap-1 sm:gap-1.5 pb-1">
