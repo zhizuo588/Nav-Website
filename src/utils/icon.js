@@ -28,7 +28,7 @@ const DASHBOARD_ICON_MAP = {
   'bilibili': 'bilibili',
   'douyin': 'douyin',
   'juejin': 'juejin',
-  
+
   // 云服务
   'cloudflare': 'cloudflare',
   'vercel': 'vercel',
@@ -39,7 +39,7 @@ const DASHBOARD_ICON_MAP = {
   'google': 'google',
   'microsoft': 'microsoft',
   'apple': 'apple',
-  
+
   // 开发工具
   'docker': 'docker',
   'kubernetes': 'kubernetes',
@@ -47,7 +47,7 @@ const DASHBOARD_ICON_MAP = {
   'reactjs': 'react',
   'nextjs': 'nextjs',
   'tailwindcss': 'tailwindcss',
-  
+
   // AI 工具
   'deepseek': 'deepseek',
   'openai': 'openai',
@@ -57,43 +57,45 @@ const DASHBOARD_ICON_MAP = {
   'siliconflow': 'siliconflow',
   'perplexity': 'perplexity',
   'cursor': 'cursor',
-  
+  'gemini': 'gemini',
+  'google-ai-studio': 'gemini',
+
   // 浏览器
   'brave': 'brave',
   'chrome': 'google-chrome',
   'firefox': 'firefox',
   'safari': 'safari',
   'edge': 'microsoft-edge',
-  
+
   // 密码管理
   '1password': '1password',
   'bitwarden': 'bitwarden',
-  
+
   // 监控
   'sentry': 'sentry',
   'grafana': 'grafana',
-  
+
   // CI/CD
   'jenkins': 'jenkins',
   'circleci': 'circleci',
-  
+
   // 部署平台
   'render': 'render',
   'supabase': 'supabase',
-  
+
   // 数据库
   'mongodb': 'mongodb',
   'redis': 'redis',
   'postgresql': 'postgresql',
   'mysql': 'mysql',
-  
+
   // ORM
   'prisma': 'prisma',
-  
+
   // 服务器
   'nginx': 'nginx',
   'apache': 'apache',
-  
+
   // 自托管
   'portainer': 'portainer',
   'uptime-kuma': 'uptime-kuma',
@@ -102,25 +104,25 @@ const DASHBOARD_ICON_MAP = {
   'searxng': 'searxng',
   'adguard': 'adguard',
   'stirling-pdf': 'stirling-pdf',
-  
+
   // 下载
   'qbittorrent': 'qbittorrent',
-  
+
   // 媒体
   'immich': 'immich',
   'jellyfin': 'jellyfin',
   'plex': 'plex',
   'emby': 'emby',
-  
+
   // 文件管理
   'filebrowser': 'filebrowser',
   'it-tools': 'it-tools',
   'alist': 'alist',
-  
+
   // 自动化
   'n8n': 'n8n',
   'homeassistant': 'home-assistant',
-  
+
   // 网络
   'tailscale': 'tailscale',
 }
@@ -159,9 +161,14 @@ function findDashboardIcon(url) {
     }
   }
 
-  // 3. 部分匹配
+  // 3. 部分匹配，但要排除一些特殊情况（比如 gemini.google.com 不能匹配成 google）
   for (const [key, value] of Object.entries(DASHBOARD_ICON_MAP)) {
     if (hostname.includes(key) || key.includes(hostname)) {
+      // 防止类似于 gemini.google.com 被硬生生匹配成 key='google' 的情况，
+      // 只有在没有更具体子域名匹配的情况下才 fallback，这里严格限制一下
+      if (key === 'google' && hostname.includes('gemini')) {
+        return 'gemini'
+      }
       return value
     }
   }
@@ -176,7 +183,7 @@ function findDashboardIcon(url) {
 function getNativeFavicon(url) {
   const hostname = extractHostname(url)
   if (!hostname) return null
-  
+
   // 优先使用网站的原生 favicon
   return `https://${hostname}/favicon.ico`
 }
@@ -258,13 +265,13 @@ export async function checkIconAvailable(iconUrl) {
 export function getFallbackIconUrls(url) {
   const urls = []
   const hostname = extractHostname(url)
-  
+
   if (hostname) {
     urls.push(`https://${hostname}/favicon.ico`)
     urls.push(`https://unavatar.io/${hostname}`)
     urls.push(`https://icons.duckduckgo.com/ip3/${hostname}.ico`)
     urls.push(`https://www.google.com/s2/favicons?domain=${hostname}&sz=128`)
   }
-  
+
   return urls
 }
