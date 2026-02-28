@@ -1,3 +1,10 @@
+import {
+  getClientIp,
+  checkRateLimit,
+  recordFailedAttempt,
+  clearFailedAttempts
+} from '../_middleware.js'
+
 // 私密分类密码验证 API
 export async function onRequest(context) {
   const { request, env } = context
@@ -24,6 +31,16 @@ export async function onRequest(context) {
       return jsonResponse({ error: '缺少密码' }, 400)
     }
 
+    // 检查频率限制 (防止暴力破解)
+    const clientIp = getClientIp(request)
+    const isLocked = await checkRateLimit(env, clientIp, 'private')
+    if (isLocked) {
+      return jsonResponse({
+        error: '密码尝试次数过多，请15分钟后再试',
+        locked: true
+      }, 429)
+    }
+
     // 从环境变量读取正确密码
     const correctPassword = env.PRIVATE_PASSWORD
 
@@ -33,8 +50,12 @@ export async function onRequest(context) {
 
     // 验证密码
     if (password === correctPassword) {
+      // 密码验证成功，清除失败记录
+      await clearFailedAttempts(env, clientIp, 'private')
       return jsonResponse({ success: true })
     } else {
+      // 密码验证失败，记录失败尝试
+      await recordFailedAttempt(env, clientIp, 'private')
       return jsonResponse({ error: '密码错误' }, 401)
     }
 

@@ -42,3 +42,20 @@ CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
 CREATE INDEX IF NOT EXISTS idx_category ON websites(category);
 CREATE INDEX IF NOT EXISTS idx_name ON websites(name);
 CREATE INDEX IF NOT EXISTS idx_url ON websites(url);
+
+-- 创建 rate_limits 表以防止密码暴力破解
+CREATE TABLE IF NOT EXISTS rate_limits (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  ip_address TEXT NOT NULL,
+  action TEXT NOT NULL, -- e.g., 'login', 'private', 'admin'
+  failed_attempts INTEGER DEFAULT 1,
+  locked_until DATETIME,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(ip_address, action)
+);
+
+-- 创建 rate_limits 表的相关索引
+CREATE INDEX IF NOT EXISTS idx_rate_limits_ip_action ON rate_limits(ip_address, action);
+CREATE INDEX IF NOT EXISTS idx_rate_limits_locked_until ON rate_limits(locked_until);
+

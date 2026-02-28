@@ -14,7 +14,11 @@ import {
   isOldHashFormat,
   createSession,
   jsonResponse,
-  corsOptionsResponse
+  corsOptionsResponse,
+  getClientIp,
+  checkRateLimit,
+  recordFailedAttempt,
+  clearFailedAttempts
 } from '../_middleware.js'
 
 export async function onRequest(context) {
@@ -37,12 +41,24 @@ export async function onRequest(context) {
       return jsonResponse({ error: '用户名和密码不能为空' }, 400)
     }
 
+    // 检查频率限制 (防止暴力破解)
+    const clientIp = getClientIp(request)
+    const isLocked = await checkRateLimit(env, clientIp, 'login')
+    if (isLocked) {
+      return jsonResponse({
+        error: '登录尝试次数过多，请15分钟后再试',
+        locked: true
+      }, 429)
+    }
+
     // 查询用户
     const user = await env.DB.prepare(
       'SELECT id, username, password_hash FROM users WHERE username = ?'
     ).bind(username).first()
 
     if (!user) {
+      // 找不到用户也记录一次失败（防用户名探测也是顺带的，但主要是防密码暴破）
+      await recordFailedAttempt(env, clientIp, 'login')
       return jsonResponse({ error: '用户名或密码错误' }, 401)
     }
 
@@ -50,8 +66,12 @@ export async function onRequest(context) {
     const passwordValid = await verifyPassword(password, user.password_hash)
 
     if (!passwordValid) {
+      await recordFailedAttempt(env, clientIp, 'login')
       return jsonResponse({ error: '用户名或密码错误' }, 401)
     }
+
+    // 密码验证成功，清除失败记录
+    await clearFailedAttempts(env, clientIp, 'login')
 
     // 检查是否需要升级密码哈希（旧格式）
     let passwordUpgraded = false

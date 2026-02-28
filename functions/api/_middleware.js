@@ -274,6 +274,125 @@ export async function cleanExpiredSessions(env) {
 }
 
 // ============================================================================
+// 防暴力破解 (Rate Limiting)
+// ============================================================================
+
+/**
+ * 获取客户端真实 IP
+ * @param {Request} request - HTTP 请求对象
+ * @returns {string} IP 地址
+ */
+export function getClientIp(request) {
+  return request.headers.get('CF-Connecting-IP') || 
+         request.headers.get('X-Forwarded-For') || 
+         'unknown-ip'
+}
+
+/**
+ * 检查 IP 是否被锁定
+ * @param {object} env - Cloudflare 环境对象
+ * @param {string} ip - 客户端 IP
+ * @param {string} action - 操作类型 ('login', 'private', 'admin')
+ * @returns {Promise<boolean>} 是否被锁定
+ */
+export async function checkRateLimit(env, ip, action) {
+  try {
+    const record = await env.DB.prepare(`
+      SELECT locked_until FROM rate_limits 
+      WHERE ip_address = ? AND action = ?
+    `).bind(ip, action).first()
+
+    if (!record || !record.locked_until) return false
+
+    // 如果锁定时间大于当前时间，则说明还在锁定中
+    return new Date(record.locked_until) > new Date()
+  } catch (error) {
+    console.error(`检查频率限制错误 (${ip}, ${action}):`, error)
+    return false // 发生错误时放行，避免阻断正常使用
+  }
+}
+
+/**
+ * 记录失败尝试并检查是否需要锁定
+ * @param {object} env - Cloudflare 环境对象
+ * @param {string} ip - 客户端 IP
+ * @param {string} action - 操作类型 ('login', 'private', 'admin')
+ * @param {number} maxAttempts - 最大失败次数 (默认 5)
+ * @param {number} lockMinutes - 锁定分钟数 (默认 15)
+ * @returns {Promise<void>}
+ */
+export async function recordFailedAttempt(env, ip, action, maxAttempts = 5, lockMinutes = 15) {
+  try {
+    // 获取当前记录
+    const record = await env.DB.prepare(`
+      SELECT failed_attempts, locked_until FROM rate_limits 
+      WHERE ip_address = ? AND action = ?
+    `).bind(ip, action).first()
+
+    const now = new Date()
+
+    if (!record) {
+      // 首次失败
+      await env.DB.prepare(`
+        INSERT INTO rate_limits (ip_address, action, failed_attempts)
+        VALUES (?, ?, 1)
+      `).bind(ip, action).run()
+      return
+    }
+
+    // 如果之前被锁定且已过期，重置为1次失败
+    if (record.locked_until && new Date(record.locked_until) <= now) {
+      await env.DB.prepare(`
+        UPDATE rate_limits 
+        SET failed_attempts = 1, locked_until = NULL, updated_at = datetime('now')
+        WHERE ip_address = ? AND action = ?
+      `).bind(ip, action).run()
+      return
+    }
+
+    // 增加失败次数
+    const newAttempts = record.failed_attempts + 1
+    
+    // 判断是否需要锁定
+    if (newAttempts >= maxAttempts) {
+      const lockUntil = new Date(now.getTime() + lockMinutes * 60000)
+      await env.DB.prepare(`
+        UPDATE rate_limits 
+        SET failed_attempts = ?, locked_until = ?, updated_at = datetime('now')
+        WHERE ip_address = ? AND action = ?
+      `).bind(newAttempts, lockUntil.toISOString(), ip, action).run()
+      console.log(`[RateLimit] IP ${ip} 被锁定 (${action}) until ${lockUntil.toISOString()}`)
+    } else {
+      await env.DB.prepare(`
+        UPDATE rate_limits 
+        SET failed_attempts = ?, updated_at = datetime('now')
+        WHERE ip_address = ? AND action = ?
+      `).bind(newAttempts, ip, action).run()
+    }
+  } catch (error) {
+    console.error(`记录失败尝试错误 (${ip}, ${action}):`, error)
+  }
+}
+
+/**
+ * 成功后清除失败记录
+ * @param {object} env - Cloudflare 环境对象
+ * @param {string} ip - 客户端 IP
+ * @param {string} action - 操作类型 ('login', 'private', 'admin')
+ * @returns {Promise<void>}
+ */
+export async function clearFailedAttempts(env, ip, action) {
+  try {
+    await env.DB.prepare(`
+      DELETE FROM rate_limits 
+      WHERE ip_address = ? AND action = ?
+    `).bind(ip, action).run()
+  } catch (error) {
+    console.error(`清除失败记录错误 (${ip}, ${action}):`, error)
+  }
+}
+
+// ============================================================================
 // 请求鉴权
 // ============================================================================
 

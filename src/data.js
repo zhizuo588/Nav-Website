@@ -217,7 +217,7 @@ export const searchEngines = [
     icon: 'https://github.com/favicon.ico'
   },
   {
-    name: '🔍 导航搜索',
+    name: '导航搜索',
     url: 'local://nav-search',
     icon: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>',
     isLocal: true  // 标记为本地搜索

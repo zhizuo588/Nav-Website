@@ -9,7 +9,11 @@ import {
   authenticateRequest,
   unauthorizedResponse,
   jsonResponse,
-  corsOptionsResponse
+  corsOptionsResponse,
+  getClientIp,
+  checkRateLimit,
+  recordFailedAttempt,
+  clearFailedAttempts
 } from '../_middleware.js'
 
 export async function onRequest(context) {
@@ -24,11 +28,25 @@ export async function onRequest(context) {
     return jsonResponse({ error: 'Method not allowed' }, 405)
   }
 
+  // 检查频率限制 (防止暴力破解)
+  const clientIp = getClientIp(request)
+  const isLocked = await checkRateLimit(env, clientIp, 'admin')
+  if (isLocked) {
+    return jsonResponse({
+      error: '尝试次数过多，请15分钟后再试',
+      locked: true
+    }, 429)
+  }
+
   // 鉴权检查
   const user = await authenticateRequest(request, env)
   if (!user) {
+    await recordFailedAttempt(env, clientIp, 'admin')
     return unauthorizedResponse('您需要登录后才能添加网站')
   }
+
+  // 鉴权成功，清除失败记录
+  await clearFailedAttempts(env, clientIp, 'admin')
 
   // 验证数据
   const data = await request.json()
