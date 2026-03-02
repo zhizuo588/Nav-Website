@@ -38,11 +38,25 @@ export async function onRequest(context) {
     }, 429)
   }
 
-  // 鉴权检查
-  const user = await authenticateRequest(request, env)
-  if (!user) {
+  // 鉴权检查 (兼容老的 Admin 密码和新的 User Token)
+  const authHeader = request.headers.get('Authorization')
+  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : null
+
+  let isAuthenticated = false
+
+  if (token === env.ADMIN_PASSWORD) {
+    isAuthenticated = true
+  } else if (token) {
+    // 尝试作为用户 Session 验证
+    const user = await authenticateRequest(request, env)
+    if (user) {
+      isAuthenticated = true
+    }
+  }
+
+  if (!isAuthenticated) {
     await recordFailedAttempt(env, clientIp, 'admin')
-    return unauthorizedResponse('您需要登录后才能添加网站')
+    return unauthorizedResponse('您需要提供正确的管理员密码或登录后才能添加网站')
   }
 
   // 鉴权成功，清除失败记录
