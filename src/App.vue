@@ -1741,8 +1741,8 @@ const openAddWebsiteModal = () => {
 }
 
 // 提交添加网站
-const submitAddWebsite = async () => {
-  if (!addWebsiteForm.value.name || !addWebsiteForm.value.url) {
+const submitAddWebsite = async (formData) => {
+  if (!formData.name || !formData.url) {
     addWebsiteError.value = '请填写网站名称和链接'
     return
   }
@@ -1760,7 +1760,7 @@ const submitAddWebsite = async () => {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${adminPassword}`
       },
-      body: JSON.stringify(addWebsiteForm.value)
+      body: JSON.stringify(formData)
     })
 
     const result = await response.json()
@@ -1777,8 +1777,8 @@ const submitAddWebsite = async () => {
       if (activeCategory.value !== 'frequent' && 
           activeCategory.value !== 'favorites' && 
           activeCategory.value !== 'nav-search' &&
-          activeCategory.value !== addWebsiteForm.value.category) {
-        activeCategory.value = addWebsiteForm.value.category
+          activeCategory.value !== formData.category) {
+        activeCategory.value = formData.category
       }
     } else {
       if (response.status === 401) clearAdminPasswordCache()
