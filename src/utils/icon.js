@@ -209,33 +209,19 @@ export function getIconUrl(url, iconUrl = '') {
     return `https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/${dashboardIconName}.svg`
   }
 
-  // 3. 使用网站原生 favicon（最重要！最通用！）
-  const nativeFavicon = getNativeFavicon(url)
-  if (nativeFavicon) {
-    return nativeFavicon
-  }
+  const hostname = extractHostname(url)
+  if (!hostname) return ''
 
-  // 4. unavatar.io 作为备用
-  try {
-    const hostname = extractHostname(url)
-    if (hostname) {
-      return `https://unavatar.io/${hostname}`
-    }
-  } catch (e) {
-    // ignore
-  }
+  // 判断是否是内网 IP 或 localhost
+  const isLocal = /^(localhost|127\.0\.0\.1|192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/.test(hostname)
 
-  // 5. DuckDuckGo 最后备用
-  try {
-    const hostname = extractHostname(url)
-    if (hostname) {
-      return `https://icons.duckduckgo.com/ip3/${hostname}.ico`
-    }
-  } catch (e) {
-    // ignore
+  if (isLocal) {
+    // 3a. 内网地址直接使用原生 favicon
+    return `https://${hostname}/favicon.ico`
+  } else {
+    // 3b. 公网地址优先使用国内稳定的 api.iowen.cn 代理服务获取图标，避免跨域或被墙问题
+    return `https://api.iowen.cn/favicon/${hostname}.png`
   }
-
-  return ''
 }
 
 /**
@@ -265,10 +251,16 @@ export function getFallbackIconUrls(url) {
   const hostname = extractHostname(url)
 
   if (hostname) {
-    urls.push(`https://${hostname}/favicon.ico`)
-    urls.push(`https://unavatar.io/${hostname}`)
-    urls.push(`https://icons.duckduckgo.com/ip3/${hostname}.ico`)
-    urls.push(`https://www.google.com/s2/favicons?domain=${hostname}&sz=128`)
+    const isLocal = /^(localhost|127\.0\.0\.1|192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/.test(hostname)
+
+    if (isLocal) {
+      urls.push(`https://${hostname}/favicon.ico`)
+    } else {
+      urls.push(`https://api.iowen.cn/favicon/${hostname}.png`)
+      urls.push(`https://favicon.im/${hostname}`)
+      urls.push(`https://${hostname}/favicon.ico`)
+      urls.push(`https://www.google.com/s2/favicons?domain=${hostname}&sz=128`)
+    }
   }
 
   return urls

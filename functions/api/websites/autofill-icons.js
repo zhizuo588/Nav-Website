@@ -17,9 +17,8 @@ import {
 // 图标获取优先级：
 // 1. api.iowen.cn 服务 (国内最稳定)
 // 2. favicon.im 服务
-// 3. DuckDuckGo 图标服务
-// 4. Google Favicon 服务
-// 5. 网站原生 favicon (/favicon.ico)
+// 3. Google Favicon 服务
+// 4. 网站原生 favicon (/favicon.ico)
 
 // 检测 URL 是否返回有效的图片
 async function checkFavicon(url) {
@@ -60,7 +59,6 @@ async function getAutoIconUrl(url) {
     const sources = [
       `https://api.iowen.cn/favicon/${hostname}.png`,
       `https://favicon.im/${hostname}`,
-      `https://icons.duckduckgo.com/ip3/${hostname}.ico`,
       `https://www.google.com/s2/favicons?domain=${hostname}&sz=128`,
       `https://${hostname}/favicon.ico`
     ]
