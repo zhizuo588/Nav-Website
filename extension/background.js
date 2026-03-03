@@ -178,7 +178,7 @@ function getNativeFavicon(url) {
   if (!hostname) return null
 
   // 优先使用网站的原生 favicon
-  return \`https://\${hostname}/favicon.ico\`
+  return `https://${hostname}/favicon.ico`
 }
 
 /**
@@ -194,19 +194,19 @@ function getIconUrl(url, iconUrl = '') {
     return `https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/${dashboardIconName}.svg`
   }
 
-const hostname = extractHostname(url)
-if (!hostname) return ''
+  const hostname = extractHostname(url)
+  if (!hostname) return ''
 
-// 判断是否是内网 IP 或 localhost
-const isLocal = /^(localhost|127\.0\.0\.1|192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/.test(hostname)
+  // 判断是否是内网 IP 或 localhost
+  const isLocal = /^(localhost|127\.0\.0\.1|192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/.test(hostname)
 
-if (isLocal) {
-  // 3a. 内网地址直接使用原生 favicon
-  return `https://${hostname}/favicon.ico`
-} else {
-  // 3b. 公网地址优先使用国内稳定的 api.iowen.cn 代理服务获取图标，避免跨域或被墙问题
-  return `https://api.iowen.cn/favicon/${hostname}.png`
-}
+  if (isLocal) {
+    // 3a. 内网地址直接使用原生 favicon
+    return `https://${hostname}/favicon.ico`
+  } else {
+    // 3b. 公网地址优先使用国内稳定的 api.iowen.cn 代理服务获取图标，避免跨域或被墙问题
+    return `https://api.iowen.cn/favicon/${hostname}.png`
+  }
 }
 
 // 分类列表（与网站分类保持一致）

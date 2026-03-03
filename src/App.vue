@@ -657,6 +657,7 @@
       :show="showAddWebsiteModal"
       :loading="addWebsiteLoading"
       :error="addWebsiteError"
+      :categories="categories"
       :initialCategory="activeCategory === 'frequent' || activeCategory === 'favorites' ? (navItems.length > 0 ? navItems[0].category : '') : activeCategory"
       @close="showAddWebsiteModal = false"
       @submit="submitAddWebsite"
