@@ -640,7 +640,7 @@
     <!-- 10. 书签导入弹窗 -->
     <BookmarkImport
       :show="showBookmarkImport"
-      :categories="navItems.map(item => item.category)"
+      :categories="uniqueCategories"
       @close="showBookmarkImport = false"
       @refresh="refreshNavData"
     />
@@ -657,7 +657,7 @@
       :show="showAddWebsiteModal"
       :loading="addWebsiteLoading"
       :error="addWebsiteError"
-      :categories="categories"
+      :categories="uniqueCategories"
       :initialCategory="activeCategory === 'frequent' || activeCategory === 'favorites' ? (navItems.length > 0 ? navItems[0].category : '') : activeCategory"
       @close="showAddWebsiteModal = false"
       @submit="submitAddWebsite"
@@ -686,6 +686,11 @@ const { settings: themeSettings } = useTheme()
 // === 状态定义 ===
 const navItems = ref([])  // 改为响应式数组
 const activeCategory = ref('frequent')
+
+const uniqueCategories = computed(() => {
+  const cats = navItems.value.map(item => item.category)
+  return [...new Set(cats)]
+})
 const searchQuery = ref('')
 const debouncedQuery = ref(searchQuery.value)
 const SEARCH_DEBOUNCE_MS = 200
