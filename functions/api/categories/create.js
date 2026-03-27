@@ -67,6 +67,11 @@ export async function onRequest(context) {
       return jsonResponse({ error: '该分类已存在' }, 409)
     }
 
+    // 插入占位符网站，确保分类可以通过 /api/websites/read 正常显示
+    await env.DB.prepare(
+      "INSERT INTO websites (name, url, category, desc, icon_url, dark_icon) VALUES (?, ?, ?, ?, ?, ?)"
+    ).bind('__placeholder__', '__placeholder__', name, '', '', 0).run()
+
     return jsonResponse({
       success: true,
       message: `分类「${name}」创建成功`,

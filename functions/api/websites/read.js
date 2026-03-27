@@ -41,15 +41,18 @@ export async function onRequest(context) {
         }
       }
 
-      categorized[row.category].items.push({
-        id: row.id,
-        name: row.name,
-        url: row.url,
-        desc: row.desc || '',
-        iconUrl: row.icon_url || '',
-        lanUrl: row.lan_url || null,
-        darkIcon: row.dark_icon === 1
-      })
+      // 过滤掉占位符网站，仅仅让它维持分类的存在
+      if (row.name !== '__placeholder__' && row.url !== '__placeholder__') {
+        categorized[row.category].items.push({
+          id: row.id,
+          name: row.name,
+          url: row.url,
+          desc: row.desc || '',
+          iconUrl: row.icon_url || '',
+          lanUrl: row.lan_url || null,
+          darkIcon: row.dark_icon === 1
+        })
+      }
     })
 
     // 转换为数组格式

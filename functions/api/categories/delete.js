@@ -58,9 +58,9 @@ export async function onRequest(context) {
       return jsonResponse({ error: '缺少分类名称' }, 400)
     }
 
-    // 检查分类下有多少网站
+    // 检查分类下有多少真实网站（排除占位符）
     const countResult = await env.DB.prepare(
-      'SELECT COUNT(*) as count FROM websites WHERE category = ?'
+      "SELECT COUNT(*) as count FROM websites WHERE category = ? AND name != '__placeholder__'"
     ).bind(name).first()
 
     const websiteCount = countResult.count
