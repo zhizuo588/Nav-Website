@@ -9,18 +9,18 @@ pages_build_output_dir = "dist"
 [[d1_databases]]
 binding = "DB"
 database_name = "nav-website"
-database_id = "bc970c75-243c-4bda-ae0a-70a57bdb96ee"  # 创建 D1 后会显示 ID，需要替换
+database_id = "7f58f920-9f06-4e18-8d5b-ca7ccd22a920"  # 创建 D1 后会显示 ID，需要替换
 
 # KV 命名空间绑定（用于数据同步）
 [[kv_namespaces]]
 binding = "NAV_KV"
-id = "caaf7f474fcd414c81605f5e7ca27134"  # 创建 KV 后会显示 ID，需要替换
+id = "ec0c612d0f1542138dae4f96e1da5e1c"  # 创建 KV 后会显示 ID，需要替换
 preview_id = "caaf7f474fcd414c81605f5e7ca27134"
 
 # R2 存储桶绑定（用于图片上传）
 [[r2_buckets]]
 binding = "NAV_IMAGES"
-bucket_name = "blog-images"
+bucket_name = "nav-images"
 preview_bucket_name = "nav-images-preview"
 
 # 环境变量（通过 wrangler secret 设置，不要在此硬编码）
